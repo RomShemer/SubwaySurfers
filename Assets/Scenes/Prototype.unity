@@ -9145,6 +9145,67 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8961071772962173638, guid: 7c30387ed4c9b4f4fb768cbd985cadc3, type: 3}
   m_PrefabInstance: {fileID: 1283214929}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1291548631
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1291548633}
+  - component: {fileID: 1291548632}
+  m_Layer: 0
+  m_Name: CoinSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1291548632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1291548631}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86c039d87c4634e098de345f64370951, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 8444832577642346656}
+  coinPrefab: {fileID: 3732957382957073187, guid: ed81588800e5e4eed9465ba7f69cddd3, type: 3}
+  lanesX:
+  - -1
+  - 0
+  - 1
+  startAheadZ: 15
+  distanceAheadZ: 60
+  spacingZ: 9
+  jitterZ: 0.2
+  defaultY: 1.2
+  rayTopY: 50
+  rayMaxDistance: 200
+  aboveHitOffset: 0.3
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!4 &1291548633
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1291548631}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.16592653, y: 1.2994095, z: 0.63157046}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1296003714
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14779,6 +14840,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c9c2f661bc9975409e97405179e7fd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!4 &8444832577642346656 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7961605909173690589, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
+  m_PrefabInstance: {fileID: 8486294460305700157}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8486294460305700157
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14902,3 +14968,4 @@ SceneRoots:
   - {fileID: 1432093198}
   - {fileID: 8486294460305700157}
   - {fileID: 1757259715}
+  - {fileID: 1291548633}

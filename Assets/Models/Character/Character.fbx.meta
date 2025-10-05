@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 6a72a39b0d5ee7e47a01922a2a8673fb
 ModelImporter:
-  serializedVersion: 20101
+  serializedVersion: 19300
   internalIDToNameTable:
   - first:
       74: 6200578666267062213
@@ -192,72 +192,7 @@ ModelImporter:
   - first:
       74: 2749528720828629341
     second: load
-  externalObjects:
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: EFX
-    second: {fileID: 2100000, guid: 6901d18cfd4651c499b465b6ff0f7569, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_frank
-    second: {fileID: 2100000, guid: 7f7d845038d940a48a1adac1ff798404, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_fresh
-    second: {fileID: 2100000, guid: 0dd72c8e4b4c28e4bb5fe3b995ef8ae3, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_frizzy
-    second: {fileID: 2100000, guid: 1d51488677b9e564292d17c54ff94cdf, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_king
-    second: {fileID: 2100000, guid: 713285dd9cbdbb04fb828e8d995f4ba1, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_lucy
-    second: {fileID: 2100000, guid: 30bb391661e7d4144a03fc1cabfa9d62, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_ninja
-    second: {fileID: 2100000, guid: 28349a1e295fc394b80cd244137c82e4, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_slick
-    second: {fileID: 2100000, guid: 4fa13d82cbdb6834488eb71671f94fd1, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_spike
-    second: {fileID: 2100000, guid: dfc3e678c6bfad14b81b37fad69d4201, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_tricky
-    second: {fileID: 2100000, guid: f1c8ef9634e094941b8eac21c03fc6fd, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: avatar_yutani
-    second: {fileID: 2100000, guid: bc529474b2d70364f9df7af91dffb0b5, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: main
-    second: {fileID: 2100000, guid: 3d4a515bc1e8a37489a8361c5bb4ef02, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: shadow
-    second: {fileID: 2100000, guid: 111d6f0ebf498aa4ea7e4c18b6521b73, type: 2}
+  externalObjects: {}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -658,10 +593,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -687,10 +622,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -743,7 +678,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -801,8 +736,8 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -832,12 +767,12 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -888,8 +823,8 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
+      loopTime: 0
+      loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
@@ -946,7 +881,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -1006,31 +941,17 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
-      events:
-      - time: 0
-        functionName: DisableSkate
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 0
-        messageOptions: 0
-      - time: 0.47093022
-        functionName: DisableSkate
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: 1
-        messageOptions: 0
+      events: []
       transformMask: []
       maskType: 3
       maskSource: {instanceID: 0}
@@ -1047,12 +968,12 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -1078,12 +999,12 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -1214,7 +1135,7 @@ ModelImporter:
       takeName: stumbleSideRight
       internalID: 0
       firstFrame: 0
-      lastFrame: 12
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1226,7 +1147,7 @@ ModelImporter:
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -1243,7 +1164,7 @@ ModelImporter:
       takeName: stumbleSideLeft
       internalID: 0
       firstFrame: 0
-      lastFrame: 12
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1255,7 +1176,7 @@ ModelImporter:
       loopBlendOrientation: 0
       loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -1272,7 +1193,7 @@ ModelImporter:
       takeName: death_upper
       internalID: 0
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1281,10 +1202,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -1301,7 +1222,7 @@ ModelImporter:
       takeName: death_lower
       internalID: 0
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1310,10 +1231,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -1330,7 +1251,7 @@ ModelImporter:
       takeName: death_movingTrain
       internalID: 0
       firstFrame: 0
-      lastFrame: 44
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1339,10 +1260,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -1359,7 +1280,7 @@ ModelImporter:
       takeName: caught
       internalID: 0
       firstFrame: 0
-      lastFrame: 68
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -1368,12 +1289,12 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -1453,12 +1374,12 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
-      loopBlend: 1
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -2084,7 +2005,7 @@ ModelImporter:
       takeName: stumbleOffRight
       internalID: 0
       firstFrame: 0
-      lastFrame: 12
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2093,12 +2014,12 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -2113,7 +2034,7 @@ ModelImporter:
       takeName: stumbleOffLeft
       internalID: 0
       firstFrame: 0
-      lastFrame: 12
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2122,12 +2043,12 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -2142,7 +2063,7 @@ ModelImporter:
       takeName: slide_roll2
       internalID: 0
       firstFrame: 0
-      lastFrame: 39
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2151,10 +2072,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -2323,7 +2244,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -2345,7 +2266,7 @@ ModelImporter:
       takeName: caught2
       internalID: 0
       firstFrame: 0
-      lastFrame: 63
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2354,12 +2275,12 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
-      loopBlendPositionXZ: 1
-      keepOriginalOrientation: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 1
+      keepOriginalPositionXZ: 0
       heightFromFeet: 0
       mirror: 0
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
@@ -2374,7 +2295,7 @@ ModelImporter:
       takeName: stumbleFall
       internalID: 0
       firstFrame: 0
-      lastFrame: 30
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2383,10 +2304,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -2403,7 +2324,7 @@ ModelImporter:
       takeName: stumble_low
       internalID: 0
       firstFrame: 0
-      lastFrame: 19
+      lastFrame: 438
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -2412,10 +2333,10 @@ ModelImporter:
       hasAdditiveReferencePose: 0
       loopTime: 0
       loopBlend: 0
-      loopBlendOrientation: 1
-      loopBlendPositionY: 1
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
       loopBlendPositionXZ: 0
-      keepOriginalOrientation: 1
+      keepOriginalOrientation: 0
       keepOriginalPositionY: 1
       keepOriginalPositionXZ: 0
       heightFromFeet: 0
@@ -2468,13 +2389,11 @@ ModelImporter:
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
-    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
     keepQuads: 0
     weldVertices: 1
-    bakeAxisConversion: 0
     preserveHierarchy: 0
     skinWeightsMode: 0
     maxBonesPerVertex: 4
@@ -2484,9 +2403,6 @@ ModelImporter:
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
-    secondaryUVMarginMethod: 1
-    secondaryUVMinLightmapResolution: 40
-    secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
     useFileScale: 0
   tangentSpace:
@@ -2724,7 +2640,7 @@ ModelImporter:
       scale: {x: 1, y: 1, z: 1}
     - name: jRoot
       parentName: gSkeleton_game
-      position: {x: 5.296564e-34, y: -0.0061841905, z: 0.0003913883}
+      position: {x: 5.296564e-34, y: -0.0061841607, z: 0.0003913883}
       rotation: {x: 6.0460504e-17, y: 0.9873951, z: -0.15827486, w: -9.6915334e-18}
       scale: {x: 1.0000005, y: 1, z: 1.0000006}
     - name: jLeg_L
@@ -2736,17 +2652,17 @@ ModelImporter:
       parentName: jLeg_L
       position: {x: 4.440892e-17, y: 0.18290536, z: 1.110223e-16}
       rotation: {x: -0.07990955, y: 0.0000000018299033, z: -0.000000011277734, w: 0.99680215}
-      scale: {x: 1.0000035, y: 1.0000031, z: 1.0000013}
+      scale: {x: 1.0000033, y: 1.0000031, z: 1.0000011}
     - name: jFoot_L
       parentName: jKnee_L
       position: {x: -3.8857806e-15, y: 0.17653339, z: 7.779011e-11}
       rotation: {x: 0.49143076, y: 0.0000000014115356, z: 0.000000012631061, w: 0.8709166}
-      scale: {x: 1.0000088, y: 1.0000098, z: 0.99999934}
+      scale: {x: 1.0000088, y: 1.0000101, z: 0.9999982}
     - name: jToes_L
       parentName: jFoot_L
       position: {x: 1.4432899e-15, y: 0.09528588, z: 6.6613384e-17}
       rotation: {x: 0.3156155, y: 5.820766e-11, z: -5.820766e-11, w: 0.9488872}
-      scale: {x: 1.0000087, y: 1.0000011, z: 1.0000054}
+      scale: {x: 1.0000086, y: 1.0000024, z: 1.0000055}
     - name: jLeg_R
       parentName: jRoot
       position: {x: -0.0924194, y: -0.035060823, z: -0.0120539265}
@@ -2761,12 +2677,12 @@ ModelImporter:
       parentName: jKnee_R
       position: {x: 3.1530333e-15, y: -0.1765337, z: 0.00000029350628}
       rotation: {x: 0.49143073, y: 3.4924597e-10, z: 0.000000019983418, w: 0.8709167}
-      scale: {x: 1.0000066, y: 1.0000063, z: 0.9999988}
+      scale: {x: 1.0000066, y: 1.0000063, z: 0.99999875}
     - name: jToes_R
       parentName: jFoot_R
       position: {x: -5.107026e-16, y: -0.0952859, z: 0.000000010444953}
       rotation: {x: 0.31561556, y: -0.000000039697625, z: -0.00000002697925, w: 0.94888717}
-      scale: {x: 1.0000052, y: 0.9999937, z: 1.0000117}
+      scale: {x: 1.0000052, y: 0.99999356, z: 1.0000116}
     - name: jLowerSpine
       parentName: jRoot
       position: {x: 3.4307703e-17, y: 0.08954313, z: -0.049702454}
@@ -2790,18 +2706,18 @@ ModelImporter:
     - name: jShoulder_R
       parentName: jLowerSpine
       position: {x: -0.106901005, y: 0.0801185, z: 0.0012323505}
-      rotation: {x: 0.029130679, y: 0.038877178, z: -0.013299443, w: 0.9987308}
-      scale: {x: 0.99999994, y: 1.0000004, z: 1.0000001}
+      rotation: {x: 0.029130679, y: 0.03887719, z: -0.013299438, w: 0.9987308}
+      scale: {x: 0.99999905, y: 1.0000004, z: 1.0000001}
     - name: jElbow_R
       parentName: jShoulder_R
       position: {x: -0.1179451, y: -1.7763569e-16, z: 1.6653345e-16}
-      rotation: {x: 0.0021822464, y: -0.06630062, z: 0.008582504, w: 0.9977604}
-      scale: {x: 0.9999986, y: 0.9999997, z: 1.0000004}
+      rotation: {x: 0.0021822613, y: -0.066300526, z: 0.008582501, w: 0.9977604}
+      scale: {x: 0.99999857, y: 0.99999964, z: 1.0000004}
     - name: jHand_R
       parentName: jElbow_R
       position: {x: -0.13189135, y: -0.0016378023, z: -0.0027630194}
       rotation: {x: 0.0086791115, y: -0.9963123, z: 0.000743545, w: 0.08535735}
-      scale: {x: 1.0000006, y: 1.0000012, z: 0.9999997}
+      scale: {x: 1.0000015, y: 1.0000013, z: 0.9999988}
     - name: magnetBooster
       parentName: jHand_R
       position: {x: 0.1244361, y: -0.048698705, z: 0.0070595676}
@@ -2812,7 +2728,7 @@ ModelImporter:
       position: {x: 0.05543391, y: -0.04478238, z: 0.0061043687}
       rotation: {x: 0, y: -0, z: -0, w: 1}
       scale: {x: 1, y: 1, z: 1}
-    - name: Intro_SprayPaint_Particles
+    - name: Intro_SprayPaint_Particles 2
       parentName: sprayCan
       position: {x: 0.075408384, y: 0.024191154, z: 0.01604712}
       rotation: {x: 0.69888294, y: 0.127316, z: 0.08820899, w: 0.6982639}
@@ -2822,7 +2738,7 @@ ModelImporter:
       position: {x: 0.07541683, y: 0.024191586, z: 0.016046185}
       rotation: {x: 0.008234517, y: 0.9703991, z: -0.20109981, w: -0.13347924}
       scale: {x: 2.3200185, y: 2.3200207, z: 2.3200212}
-    - name: Intro_SprayPaint_Particles 2
+    - name: Intro_SprayPaint_Particles
       parentName: sprayCan
       position: {x: 0.07542946, y: 0.024191197, z: 0.016049331}
       rotation: {x: 0.6988833, y: 0.12731573, z: 0.08820923, w: 0.6982636}
@@ -2830,28 +2746,28 @@ ModelImporter:
     - name: jShoulder_L
       parentName: jLowerSpine
       position: {x: 0.106900655, y: 0.080118954, z: 0.0012323776}
-      rotation: {x: 0.013209012, y: -0.9987307, z: -0.029134043, w: -0.038906414}
-      scale: {x: 0.9999966, y: 1.0000001, z: 0.9999979}
+      rotation: {x: 0.0132090105, y: -0.9987307, z: -0.029134043, w: -0.03890641}
+      scale: {x: 0.9999958, y: 1.0000001, z: 0.99999785}
     - name: jElbow_L
       parentName: jShoulder_L
       position: {x: -0.1179746, y: 0, z: -1.7763569e-16}
-      rotation: {x: -0.0019678776, y: 0.063183084, z: 0.005769814, w: 0.99798334}
-      scale: {x: 0.99999887, y: 1.0000004, z: 1.0000004}
+      rotation: {x: -0.001967877, y: 0.06318305, z: 0.0057698116, w: 0.99798334}
+      scale: {x: 0.99999917, y: 1.0000004, z: 1.0000005}
     - name: jHand_L
       parentName: jElbow_L
       position: {x: -0.13080363, y: -0.002709572, z: 0.0035138149}
       rotation: {x: -0.5920502, y: 0.33346522, z: 0.30331862, w: 0.6680384}
-      scale: {x: 0.9999997, y: 1.0000023, z: 1.0000002}
+      scale: {x: 0.9999988, y: 1.0000032, z: 1.0000002}
     - name: jHead
       parentName: jLowerSpine
       position: {x: -3.4844425e-10, y: 0.16601054, z: -0.011951002}
       rotation: {x: -0.07508158, y: 1.3751207e-16, z: 1.8701157e-17, w: 0.99717736}
-      scale: {x: 0.99999624, y: 0.9999993, z: 0.9999973}
+      scale: {x: 0.9999962, y: 0.9999992, z: 0.9999969}
     - name: jAfro_3
       parentName: jHead
       position: {x: 9.241076e-17, y: 0.1320297, z: 0.08379394}
       rotation: {x: 0.2886295, y: 3.00907e-16, z: 2.7103493e-16, w: 0.95744085}
-      scale: {x: 1.000005, y: 1.000007, z: 0.9999966}
+      scale: {x: 1.000005, y: 1.000007, z: 0.9999968}
     - name: powerups
       parentName: avatar_prefab
       position: {x: -0, y: 0, z: 0}
