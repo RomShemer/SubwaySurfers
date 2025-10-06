@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Security.Cryptography;
 using UnityEngine;
 
 public class ShaderController : MonoBehaviour
@@ -14,12 +11,10 @@ public class ShaderController : MonoBehaviour
 
     private float timer;
     private bool isTransitioning;
-    private bool isCurvePositiveX;
-    private bool isCurvePositiveY;
     private float currentCurveX;
     private float currentCurveY;
 
-    private void Start()
+    void Start()
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         currentCurveX = 0f;
@@ -32,10 +27,11 @@ public class ShaderController : MonoBehaviour
 
         if (gameManager.CanMove)
         {
-            currentCurveX = Random.Range(-0.3f, 0.3f);
-            currentCurveY = Random.Range(-0.3f, 0.0f);
+            currentCurveX = UnityEngine.Random.Range(-0.3f, 0.3f);
+            currentCurveY = UnityEngine.Random.Range(-0.3f, 0.0f); // עיקול רק מטה
         }
     }
+
     void Update()
     {
         if (gameManager.CanMove)
@@ -47,14 +43,13 @@ public class ShaderController : MonoBehaviour
                 {
                     isTransitioning = true;
                     timer = 0f;
-                    float targetCurveX = Random.Range(-0.3f, 0.3f);
-                    float targetCurveY = Random.Range(-0.3f, 0.0f);
-                    isCurvePositiveX = targetCurveX >= currentCurveX;
-                    isCurvePositiveY = targetCurveY >= currentCurveY;
+                    float targetCurveX = UnityEngine.Random.Range(-0.3f, 0.3f);
+                    float targetCurveY = UnityEngine.Random.Range(-0.3f, 0.0f);
                     StartCoroutine(TransitionCurve(targetCurveX, targetCurveY));
                 }
             }
         }
+
         foreach (var m in materials)
         {
             m.SetFloat(Shader.PropertyToID("_Curve_X"), currentCurveX);
@@ -63,6 +58,7 @@ public class ShaderController : MonoBehaviour
 
         Shader.SetGlobalFloat("_Curve_X", currentCurveX);
         Shader.SetGlobalFloat("_Curve_Y", currentCurveY);
+
     }
 
     private System.Collections.IEnumerator TransitionCurve(float targetCurveX, float targetCurveY)
@@ -76,7 +72,6 @@ public class ShaderController : MonoBehaviour
             float t = elapsedTime / transitionDuration;
             currentCurveX = Mathf.Lerp(startCurveX, targetCurveX, t);
             currentCurveY = Mathf.Lerp(startCurveY, targetCurveY, t);
-
             yield return null;
         }
         currentCurveX = targetCurveX;
@@ -84,4 +79,3 @@ public class ShaderController : MonoBehaviour
         isTransitioning = false;
     }
 }
-

@@ -3,41 +3,90 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField]
-    private float countdownTime = 3.0f;
+    [Header("Countdown")]
+    [SerializeField] private float countdownTime = 3.0f;
     private float countdown;
     private bool isCountdownInProgress = true;
-    private float fadeOpacity = 0.2f;
+    [SerializeField] private float fadeOpacity = 0.2f;
 
-    private PlayerController playerController;
-    private ShaderController shaderController;
-    private Animator playerAnimator;
+    [Header("Refs (שייך באינספקטור אם אפשר)")]
+    [SerializeField] private PlayerController playerController;
+    [SerializeField] private Animator playerAnimator;
+    [SerializeField] private ShaderController shaderController;
+
+    [Header("State")]
+    [SerializeField] private bool canMove = false;
+    [SerializeField] private bool _isInputDisabled = false;
 
     public bool CanMove { get => canMove; set => canMove = value; }
     public bool IsInputDisabled { get => _isInputDisabled; set => _isInputDisabled = value; }
-    [SerializeField]
-    private bool canMove = false;
-    [SerializeField]
-    private bool _isInputDisabled = false;
+
+    private void Awake()
+    {
+        // נסה להשלים רפרנסים אם לא שובצו ידנית
+        if (!playerController)
+        {
+            var playerGO = GameObject.FindGameObjectWithTag("Player");
+            if (playerGO)
+            {
+                playerController = playerGO.GetComponent<PlayerController>();
+                if (!playerController)
+                    Debug.LogError("[GameManager] Player found but missing PlayerController component.", playerGO);
+            }
+            else
+            {
+                Debug.LogError("[GameManager] No GameObject with Tag=Player found in scene.", this);
+            }
+        }
+
+        if (!playerAnimator && playerController)
+        {
+            playerAnimator = playerController.GetComponent<Animator>();
+            if (!playerAnimator)
+                Debug.LogError("[GameManager] PlayerController found but missing Animator component.", playerController);
+        }
+
+        if (!shaderController)
+        {
+            var curve = GameObject.Find("CurveLevel");
+            if (curve)
+            {
+                shaderController = curve.GetComponent<ShaderController>();
+                if (!shaderController)
+                    Debug.LogError("[GameManager] 'CurveLevel' found but missing ShaderController component.", curve);
+            }
+            else
+            {
+                Debug.LogError("[GameManager] No GameObject named 'CurveLevel' found in scene.", this);
+            }
+        }
+    }
 
     void Start()
     {
         countdown = countdownTime;
-        playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
-        shaderController = GameObject.Find("CurveLevel").GetComponent<ShaderController>();
-        playerAnimator = playerController.GetComponent<Animator>();
     }
 
     void Update()
     {
-        if (!canMove && countdown > 0)
+        // אם חסר רפרנס קריטי – לא נתקדם
+        if (!playerAnimator)
+        {
+            // הודעה חד־פעמית מספיקה; השארנו לוגים ב-Awake.
+            return;
+        }
+
+        if (!canMove && countdown > 0f)
         {
             countdown -= Time.deltaTime;
-            playerAnimator.enabled= false;
-            if (countdown <= 0)
+
+            // נבטיח שלא נזרוק NRE גם אם animator לא קיים
+            if (playerAnimator) playerAnimator.enabled = false;
+
+            if (countdown <= 0f)
             {
                 canMove = true;
-                playerAnimator.enabled= true;
+                if (playerAnimator) playerAnimator.enabled = true;
                 countdown = countdownTime;
             }
         }
@@ -49,6 +98,7 @@ public class GameManager : MonoBehaviour
 
     void OnGUI()
     {
+        // UI ישן – שומר כמו שהיה
         GUIStyle countdownStyle = new GUIStyle(GUI.skin.GetStyle("label"));
         countdownStyle.fontSize = 50;
         countdownStyle.normal.textColor = Color.white;
@@ -61,7 +111,9 @@ public class GameManager : MonoBehaviour
         GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
         buttonStyle.fontSize = 30;
 
-        Rect buttonRect = _isInputDisabled ? new Rect((Screen.width - 200) / 2, (Screen.height - 100) / 2, 200, 100) : new Rect(Screen.width - 110, 10, 100, 50);
+        Rect buttonRect = _isInputDisabled ? new Rect((Screen.width - 200) / 2, (Screen.height - 100) / 2, 200, 100)
+                                           : new Rect(Screen.width - 110, 10, 100, 50);
+
         if (!_isInputDisabled)
         {
             buttonStyle.fontSize = 15;
@@ -82,9 +134,8 @@ public class GameManager : MonoBehaviour
 
     public void EndGame()
     {
-        shaderController.enabled = false;
+        if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
-        playerAnimator.SetBool("isInputDisabled", true);
+        if (playerAnimator) playerAnimator.SetBool("isInputDisabled", true);
     }
-
 }
