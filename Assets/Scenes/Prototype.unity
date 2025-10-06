@@ -2815,6 +2815,75 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6090133815183497738, guid: 41db6552bf8b6544fadc6830bfb0d1da, type: 3}
   m_PrefabInstance: {fileID: 335461943}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &343991561
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 343991563}
+  - component: {fileID: 343991562}
+  m_Layer: 0
+  m_Name: SpawnerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &343991562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343991561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa666a993a0df421f934a82497b6b590, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  obstaclePrefabs:
+  - {fileID: 5708409021002210635, guid: 7c30387ed4c9b4f4fb768cbd985cadc3, type: 3}
+  - {fileID: 4987334789832953478, guid: ce393dab4bbbefc4e9ca42c7573960aa, type: 3}
+  - {fileID: 421795620868945735, guid: e770a15d8e278af418ee045463450f89, type: 3}
+  trainPrefabs:
+  - {fileID: 5100869826552512915, guid: 24eba4fb04f51394597206d3fbf82e42, type: 3}
+  - {fileID: 6295814819819682856, guid: 46be87f9c5faa184fbc5f8debcf221c2, type: 3}
+  - {fileID: 7462030199006175448, guid: c16880853ff9b784d9b2ba8694e72c17, type: 3}
+  - {fileID: 6386690582171537036, guid: 5e167ad27267b264c8eefe3544f75f06, type: 3}
+  - {fileID: 5978280509992855723, guid: c105a4b660f51c44f82acd368209f2e3, type: 3}
+  - {fileID: 2746556581140047594, guid: d80cff290fa8f0f4aa946d62ea37bb02, type: 3}
+  - {fileID: 7110311126820307039, guid: cf1f5588a79ac0545b72f0837fd5acf6, type: 3}
+  - {fileID: 3231905936153660201, guid: f79eb56f07ccb594bb382c7940ebf975, type: 3}
+  chanceToSpawnObstacle: 0.4
+  chanceToSpawnTrain: 0.3
+  yOffset: 0.5
+  socketsRootName: Sockets
+  lanesLocalX:
+  - -2
+  - 0
+  - 2
+  overlapMask:
+    serializedVersion: 2
+    m_Bits: 0
+  overlapRadius: 0.6
+--- !u!4 &343991563
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 343991561}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &344064796
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4773,6 +4842,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 98705736635507903, guid: dcfd22c6159bb6640b292a22bfe377f8, type: 3}
       propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4728506795050939373, guid: dcfd22c6159bb6640b292a22bfe377f8, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4728506795050939373, guid: dcfd22c6159bb6640b292a22bfe377f8, type: 3}
+      propertyPath: spawnOnStart
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -10431,6 +10508,8 @@ MonoBehaviour:
   player: {fileID: 8444832577642346656}
   startAnchorOverride: {fileID: 0}
   recycleBuffer: 0.25
+  skipCoinTiles: 5
+  obstacleSpawner: {fileID: 343991562}
 --- !u!1001 &1433196698
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15024,6 +15103,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c9c2f661bc9975409e97405179e7fd6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tagRollOnly: rollObstacle
+  tagJumpOnly: jumpObstacle
+  tagRollOrJump: rollAndJumpObstacle
+  tagRamp: Ramp
+  tagMovingTrain: TrainOn
 --- !u!4 &8444832577642346656 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7961605909173690589, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
@@ -15170,4 +15254,5 @@ SceneRoots:
   - {fileID: 1757259715}
   - {fileID: 1291548633}
   - {fileID: 1397296134}
+  - {fileID: 343991563}
   - {fileID: 617219094}
