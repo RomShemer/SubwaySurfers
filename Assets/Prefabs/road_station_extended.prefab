@@ -47,7 +47,7 @@ GameObject:
   - component: {fileID: 1553649538856944890}
   - component: {fileID: 3268118274484238054}
   - component: {fileID: 4837679308489009746}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: road_station_extended
   m_TagString: Untagged
   m_Icon: {fileID: 0}

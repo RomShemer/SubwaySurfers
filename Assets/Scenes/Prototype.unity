@@ -2865,10 +2865,17 @@ MonoBehaviour:
   - -2
   - 0
   - 2
+  player: {fileID: 8444832577642346656}
+  startNoSpawnSeconds: 2
+  startNoSpawnDistance: 20
+  minAheadDistance: 25
+  edgePaddingZ: 2
   overlapMask:
     serializedVersion: 2
     m_Bits: 0
   overlapRadius: 0.6
+  zBinSize: 0.5
+  spawningEnabled: 0
 --- !u!4 &343991563
 Transform:
   m_ObjectHideFlags: 0
@@ -5852,6 +5859,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 421795620868945732, guid: e770a15d8e278af418ee045463450f89, type: 3}
   m_PrefabInstance: {fileID: 719077184}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &736332648 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6447011585721207437, guid: dcfd22c6159bb6640b292a22bfe377f8, type: 3}
+  m_PrefabInstance: {fileID: 617219094}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &737331848
 PrefabInstance:
@@ -10506,7 +10518,7 @@ MonoBehaviour:
     prewarm: 6
   initialPieces: 6
   player: {fileID: 8444832577642346656}
-  startAnchorOverride: {fileID: 0}
+  startAnchorOverride: {fileID: 736332648}
   recycleBuffer: 0.25
   skipCoinTiles: 5
   obstacleSpawner: {fileID: 343991562}
@@ -15108,6 +15120,10 @@ MonoBehaviour:
   tagRollOrJump: rollAndJumpObstacle
   tagRamp: Ramp
   tagMovingTrain: TrainOn
+  relevantLayers:
+    serializedVersion: 2
+    m_Bits: 8
+  hitCooldown: 0.12
 --- !u!4 &8444832577642346656 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7961605909173690589, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
@@ -15218,9 +15234,17 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
+      propertyPath: isJumping
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: jumpPower
       value: 12
       objectReference: {fileID: 0}
+    - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
+      propertyPath: gameManager
+      value: 
+      objectReference: {fileID: 1432093197}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: forwardSpeed
       value: 20

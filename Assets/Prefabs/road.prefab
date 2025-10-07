@@ -133,6 +133,17 @@ MonoBehaviour:
   spacingLocalZ: 3.5
   marginStartZ: 0.8
   marginEndZ: 0.8
+  tileHasCoinsChance: 0.85
+  weightSingle: 1
+  weightDouble: 1.2
+  weightTriple: 0.6
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  coinRadius: 0.28
+  obstacleAfterColumnChance: 0.5
+  aheadDistanceWorld: 6
+  aheadKind: obstacle
   spawnOnStart: 1
 --- !u!114 &2954746726636795385
 MonoBehaviour:

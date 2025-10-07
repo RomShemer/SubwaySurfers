@@ -65,6 +65,9 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         countdown = countdownTime;
+        
+            //    if (playerController)
+          //  ObstacleAndTrainSpawner.I?.RegisterPlayer(playerController.transform);
     }
 
     void Update()
@@ -122,7 +125,9 @@ public class GameManager : MonoBehaviour
 
         if (GUI.Button(buttonRect, "RESTART", buttonStyle))
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            ObstacleAndTrainSpawner.I?.OnGameRestart();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+            //SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 
         if (isCountdownInProgress)

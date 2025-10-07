@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 7376994479477583762}
   - component: {fileID: 9165396455228055668}
   - component: {fileID: 4547791961372007582}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: road_pillars
   m_TagString: Untagged
   m_Icon: {fileID: 0}

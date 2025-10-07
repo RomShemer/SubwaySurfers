@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 4987334789832953474}
   - component: {fileID: 4636991014361257146}
   - component: {fileID: 8887596957645287478}
-  - component: {fileID: 1817793386521002793}
   m_Layer: 3
   m_Name: blocker_roll
   m_TagString: rollObstacle
@@ -68,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 3758952881610933197, guid: 4a2f4c667a01f8448a60271e3476bef6, type: 3}
+  - {fileID: 2100000, guid: a8ee4fc6a0957dd4a8a4d45bd25d9995, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -105,12 +104,12 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1.8980657, y: 2.1358685, z: 0.6937454}
-  m_Center: {x: 0.018141866, y: 1.99, z: -0.46456373}
+  m_Center: {x: 0.018141866, y: 1.87, z: -0.46456373}
 --- !u!65 &4636991014361257146
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -130,8 +129,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.39, y: 0.63, z: 0.6937454}
-  m_Center: {x: -0.59, y: 0.61, z: -0.46456373}
+  m_Size: {x: 0.39, y: 1, z: 1.68}
+  m_Center: {x: -0.7, y: 0.64, z: 0.08}
 --- !u!65 &8887596957645287478
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -151,26 +150,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.39, y: 0.63, z: 0.6937454}
-  m_Center: {x: 0.59, y: 0.61, z: -0.46456373}
---- !u!65 &1817793386521002793
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4987334789832953478}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 1.69, y: 0.17, z: 1.82}
-  m_Center: {x: 0.08, y: 0.13, z: -0.02}
+  m_Size: {x: 0.39, y: 1.02, z: 1.68}
+  m_Center: {x: 0.62, y: 0.6, z: 0.08}

@@ -47,7 +47,7 @@ GameObject:
   - component: {fileID: 6322860404407362102}
   - component: {fileID: 2054904037248453699}
   - component: {fileID: 2990674946556039402}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: tunnel_r
   m_TagString: Untagged
   m_Icon: {fileID: 0}

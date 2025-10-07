@@ -36,7 +36,7 @@ public class PlayerCollider : MonoBehaviour
 
     private void Update()
     {
-        if (playerController.IsRolling)
+        if (playerController.IsRollingNow)
         {
             playerCollider.height = 0.1f;
             playerCollider.radius = 0.1f;
@@ -56,11 +56,22 @@ public class PlayerCollider : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
+    /*private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Player")) return;
 
         if (gameManager.CanMove)
             playerCollision.OnCharacterCollision(collision.collider);
+    }*/
+    private void OnCollisionEnter(Collision collision)
+    {
+        if ((obstacleLayer.value & (1 << collision.gameObject.layer)) == 0)
+            return;
+
+        if (gameManager != null && gameManager.CanMove && playerCollision != null)
+        {
+            playerCollision.OnCharacterCollision(collision.collider, true);
+        }
     }
+
 }

@@ -75,7 +75,7 @@ GameObject:
   - component: {fileID: 79889587088560644}
   - component: {fileID: 5227334538983036549}
   - component: {fileID: 1158285873494749805}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: subway_3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
