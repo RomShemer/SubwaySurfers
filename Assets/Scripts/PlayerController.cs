@@ -32,11 +32,11 @@ public class PlayerController : MonoBehaviour
     public bool IsStumbleTransitionComplete { get => isStumbleTransitionComplete; set => isStumbleTransitionComplete = value; }
 
     [Header("Action windows")]
-    [SerializeField] private float actionGrace = 0.15f;   // short forgiveness window
+    [SerializeField] private float actionGrace = 0.15f;
     private float rollGraceTimer;
     private float jumpGraceTimer;
 
-    // Public flags used by collision logic
+    // flags יציבים לקוליז'ן
     public bool IsRollingNow => isRolling || rollGraceTimer > 0f;
     public bool IsAirborneOrJumping =>
         !characterController.isGrounded ||
@@ -85,6 +85,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")]
     private bool isStumbleTransitionComplete = false;
 
+    // Guard
+    public FollowGuard guard;
+    private float _curDistance = 0.6f;
+
+    // Death Flow
+    [Header("Death Flow")]
+    public bool dead = false;
+    public bool canInput = true;
+    public string caughtAnimName = "caught1";
+
+    private bool playedCaughtOnce = false;
+
     void Start()
     {
         position = Side.Middle;
@@ -98,6 +110,34 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (dead)
+        {
+            canInput = false;
+
+            // מקרב את השומר
+            _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
+            if (guard != null)
+            {
+                guard.curDistance = _curDistance;
+                guard.Folllow(myTransform.position, forwardSpeed);
+
+                if (!playedCaughtOnce)
+                {
+                    // אנימציית תפיסה של השחקן פעם אחת
+                    SafePlayAnimation(caughtAnimName);
+                    // אנימציית תפיסה של השומר/כלב (אם מימשת ב-FollowGuard)
+                    if (guard != null) guard.CaughtPlayer();
+
+                    playedCaughtOnce = true;
+                    // אם תרצה: Invoke("FinishAfterCatch", 1f); // לסגור משחק אחרי שנייה
+                    if (gameManager != null)
+                    gameManager.EndGame();
+                }
+            }
+
+            return; // לא מריצים לוגיקה רגילה
+        }
+
         if (!gameManager.CanMove || gameManager.IsInputDisabled) return;
 
         if (rollGraceTimer > 0f) rollGraceTimer -= Time.deltaTime;
@@ -109,8 +149,40 @@ public class PlayerController : MonoBehaviour
         Jump();
         Roll();
 
+        _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
+        if (guard != null)
+        {
+            guard.curDistance = _curDistance;
+            guard.Folllow(myTransform.position, forwardSpeed);
+        }
+
         isGrounded = characterController.isGrounded;
         SetStumblePosition();
+    }
+
+    // אם תרצה לסגור משחק אחרי תפיסה:
+    // private void FinishAfterCatch() { if (gameManager != null) gameManager.EndGame(); }
+
+    public void DeathPlayer(string anim)
+    {
+        if (dead) return;
+        dead = true;
+        canInput = false;
+
+        myAnimator.SetLayerWeight(1, 0f);
+        SafePlayAnimation(anim); // אצלך זה "caught1"
+    }
+
+    public void PlayAnimation(string anim)
+    {
+        if (dead) return;
+        SafePlayAnimation(anim);
+    }
+
+    private void SafePlayAnimation(string animName)
+    {
+        if (string.IsNullOrEmpty(animName) || myAnimator == null) return;
+        myAnimator.Play(animName, 0, 0f);
     }
 
     private void SetStumblePosition()
@@ -119,6 +191,7 @@ public class PlayerController : MonoBehaviour
              myAnimator.GetCurrentAnimatorStateInfo(0).IsName("StumbleSideLeft")) &&
             isStumbleTransitionComplete)
         {
+            _curDistance = 0.6f;
             UpdatePlayerXPosition(_previousXPos);
             isStumbleTransitionComplete = false;
         }
@@ -136,9 +209,8 @@ public class PlayerController : MonoBehaviour
             characterController.height = 0.9f;
         }
 
-        if (swipeDown && !isJumping)
+        if (swipeDown && !isJumping && canInput)
         {
-            // mark input BEFORE animation to allow grace window
             rollGraceTimer = actionGrace;
 
             isRolling = true;
@@ -152,17 +224,14 @@ public class PlayerController : MonoBehaviour
 
     private void GetSwipe()
     {
+        if (!canInput) { swipeLeft = swipeRight = swipeDown = swipeUp = false; return; }
+
         if (isGrounded)
         {
             swipeLeft  = Input.GetKeyDown(KeyCode.LeftArrow);
             swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
             swipeDown  = Input.GetKeyDown(KeyCode.DownArrow);
             swipeUp    = Input.GetKeyDown(KeyCode.UpArrow);
-        }
-        else
-        {
-            // allow mid-air roll if you want: uncomment next line
-            // swipeDown = swipeDown || Input.GetKeyDown(KeyCode.DownArrow);
         }
     }
 
@@ -175,12 +244,14 @@ public class PlayerController : MonoBehaviour
                 _previousXPos = Side.Middle;
                 UpdatePlayerXPosition(Side.Left);
                 SetPlayerAnimator(IdDodgeLeft, false);
+                if (guard != null) guard.LeftDodge();
             }
             else if (position == Side.Right)
             {
                 _previousXPos = Side.Right;
                 UpdatePlayerXPosition(Side.Middle);
                 SetPlayerAnimator(IdDodgeLeft, false);
+                if (guard != null) guard.LeftDodge();
             }
         }
         else if (swipeRight && !isRolling)
@@ -190,12 +261,14 @@ public class PlayerController : MonoBehaviour
                 _previousXPos = Side.Middle;
                 UpdatePlayerXPosition(Side.Right);
                 SetPlayerAnimator(IdDodgeRight, false);
+                if (guard != null) guard.RightDodge();
             }
             else if (position == Side.Left)
             {
                 _previousXPos = Side.Left;
                 UpdatePlayerXPosition(Side.Middle);
                 SetPlayerAnimator(IdDodgeRight, false);
+                if (guard != null) guard.RightDodge();
             }
         }
     }
@@ -216,17 +289,19 @@ public class PlayerController : MonoBehaviour
     public void SetPlayerAnimator(int id, bool isCrossFade, float fadeTime = 0.1f)
     {
         myAnimator.SetLayerWeight(0, 1);
-        // kept simple intentionally
         myAnimator.Play(id);
         ResetCollision();
     }
 
     private void ResetCollision()
     {
-        Debug.Log(playerCollision.CollisionX + " " + playerCollision.CollisionY + " " + playerCollision.CollisionZ);
-        playerCollision.CollisionX = CollisionX.None;
-        playerCollision.CollisionY = CollisionY.None;
-        playerCollision.CollisionZ = CollisionZ.None;
+        if (playerCollision != null)
+        {
+            Debug.Log(playerCollision.CollisionX + " " + playerCollision.CollisionY + " " + playerCollision.CollisionZ);
+            playerCollision.CollisionX = CollisionX.None;
+            playerCollision.CollisionY = CollisionY.None;
+            playerCollision.CollisionZ = CollisionZ.None;
+        }
     }
 
     private void MovePlayer()
@@ -250,11 +325,11 @@ public class PlayerController : MonoBehaviour
             if (myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Fall"))
                 SetPlayerAnimator(IdLanding, false);
 
-            if (swipeUp && !isRolling)
+            if (swipeUp && !isRolling && !dead && canInput)
             {
-                // mark input BEFORE animation to allow grace window
-                jumpGraceTimer = actionGrace;
+                if (guard != null) guard.Jump();
 
+                jumpGraceTimer = actionGrace;
                 isJumping = true;
                 yPosition = jumpPower;
                 SetPlayerAnimator(IdJump, true, 1f);

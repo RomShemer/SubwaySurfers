@@ -39,22 +39,20 @@ public class PlayerCollision : MonoBehaviour
         playerController = GetComponent<PlayerController>();
     }
 
-    // === נתיבי התנגשות מוצקה (CharacterController) ===
+    // נתיבי התנגשות מוצקה (CharacterController)
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.collider == null) return;
-        OnCharacterCollision(hit.collider); // אותו צינור טיפול
+        OnCharacterCollision(hit.collider);
     }
 
-    // === API ציבורי למסלולים אחרים (למשל OnCollisionEnter מגוף עזר) ===
+    // API ציבורי למסלולים אחרים
     public void OnCharacterCollision(Collider collider, bool bypassFilters = false)
     {
         if (!collider) return;
-
-        // מתעלמים מטריגרים – כאן עובדים רק עם מוצק
         if (collider.isTrigger) return;
 
-        // דיבאונס בסיסי למניעת טיפול כפול באותו אובייקט
+        // דיבאונס
         int id = collider.GetInstanceID();
         if (id == _lastHitId && Time.time - _lastHitTime < hitCooldown) return;
         _lastHitId = id; _lastHitTime = Time.time;
@@ -69,95 +67,83 @@ public class PlayerCollision : MonoBehaviour
         if (playerController == null || playerController.MyCharacterController == null)
             return;
 
-        // חישוב "איפה פגענו" ביחס למכשול
+        // חישוב "איפה פגענו"
         _collisionX = GetCollisionX(collider);
         _collisionY = GetCollisionY(collider);
         _collisionZ = GetCollisionZ(collider);
 
-        // קודם כל – טאגים (חוקים ברורים), ואז נפילה ללוגיקה כללית
+        // קודם טאגים, אח"כ כללי
         if (IsRelevantTag(collider.tag))
         {
-            if (HandleByTags(collider)) return; // טופל (עבר/נכשל)
-            SetAnimatorByCollision(collider);    // לא הוחלט לפי טאג → טיפול כללי
+            if (HandleByTags(collider)) return;
+            SetAnimatorByCollision(collider);
             return;
         }
 
-        // ללא טאג → נחשב כמכשול מוצק רגיל
+        // ללא טאג → מכשול רגיל
         FailByCollision(collider);
     }
 
-    // חוקים לפי טאג. מחזיר true אם טופל (הצלחה/כישלון), אחרת false.
+    // ===== חוקים לפי טאג =====
     private bool HandleByTags(Collider col)
     {
         string t = col.tag;
 
-        // רמפה – מתעלמים (מומלץ שהקוליידר שלה יהיה Trigger, או בלייר שלא מתנגש עם השחקן)
-        if (t == tagRamp) return true;
+        if (t == tagRamp) return true; // רמפה מתעלמים
 
-        bool rollingNow        = GetRollingFlag();   // כולל חלון חסד
-        bool airborneOrJumping = GetJumpFlag();      // כולל חלון חסד
+        bool rollingNow        = GetRollingFlag();
+        bool airborneOrJumping = GetJumpFlag();
 
         if (t == tagRollOnly)
         {
-            if (rollingNow) return true; // עבר כהלכה
+            if (rollingNow) return true;
             FailByCollision(col); return true;
         }
 
         if (t == tagJumpOnly)
         {
-            if (airborneOrJumping) return true; // עבר כהלכה
+            if (airborneOrJumping) return true;
             FailByCollision(col); return true;
         }
 
         if (t == tagRollOrJump)
         {
-            if (rollingNow || airborneOrJumping) return true; // אחד מספיק
+            if (rollingNow || airborneOrJumping) return true;
             FailByCollision(col); return true;
         }
 
         if (t == tagMovingTrain)
         {
-            playerController.SetPlayerAnimator(playerController.IdDeathMovingTrain, false);
-            playerController.gameManager.EndGame();
+            // מוות תמידי → caught1
+            playerController.DeathPlayer("caught1");
+            if (playerController.gameManager != null)
+                playerController.gameManager.EndGame();
             return true;
         }
 
         return false;
     }
 
-    // כישלון "גנרי" – בוחר אנימציה מתאימה לפי מיקום הפגיעה (כמו שהשתמשת עד עכשיו)
+    // ===== כשל כללי (מכשול רגיל) =====
     private void FailByCollision(Collider collider)
     {
         if (playerController == null) return;
 
+        // Stumble נמוך – לא מוות
         if (_collisionZ == CollisionZ.Backward && _collisionX == CollisionX.Middle && _collisionY == CollisionY.LowDown)
         {
-            collider.enabled = false; // למניעת טריגר כפול
+            collider.enabled = false; // למנוע טריגר כפול
             playerController.SetPlayerAnimator(playerController.IdStumbleLow, false);
             return;
         }
 
-        if (_collisionY == CollisionY.Down || _collisionY == CollisionY.LowDown)
-        {
-            playerController.SetPlayerAnimator(playerController.IdDeathLower, false);
-        }
-        else if (_collisionY == CollisionY.Up && !GetRollingFlag())
-        {
-            // מוות עליון רק אם באמת "באוויר"/קפיצה (אחרת זה נראה כמו באמפר)
-            if (GetJumpFlag())
-                playerController.SetPlayerAnimator(playerController.IdDeathUpper, false);
-            else
-                playerController.SetPlayerAnimator(playerController.IdDeathBounce, false);
-        }
-        else
-        {
-            playerController.SetPlayerAnimator(playerController.IdDeathBounce, false);
-        }
-
-        playerController.gameManager.EndGame();
+        // כל השאר = מוות → caught1
+        playerController.DeathPlayer("caught1");
+        if (playerController.gameManager != null)
+            playerController.gameManager.EndGame();
     }
 
-    // לוגיקת ברירת מחדל (אם טאג לא הכריע)
+    // ===== ברירת מחדל אם טאג לא הכריע =====
     private void SetAnimatorByCollision(Collider collider)
     {
         if (playerController == null) return;
@@ -169,40 +155,17 @@ public class PlayerCollision : MonoBehaviour
                 collider.enabled = false;
                 playerController.SetPlayerAnimator(playerController.IdStumbleLow, false);
             }
-            else if (_collisionY == CollisionY.Down)
+            else
             {
-                playerController.SetPlayerAnimator(playerController.IdDeathLower, false);
-                playerController.gameManager.EndGame();
-            }
-            else if (_collisionY == CollisionY.Middle)
-            {
-                if (collider.CompareTag(tagMovingTrain))
-                {
-                    playerController.SetPlayerAnimator(playerController.IdDeathMovingTrain, false);
+                // כל מצב אחר לאחור = caught1
+                playerController.DeathPlayer("caught1");
+                if (playerController.gameManager != null)
                     playerController.gameManager.EndGame();
-                }
-                else if (!collider.CompareTag(tagRamp))
-                {
-                    playerController.SetPlayerAnimator(playerController.IdDeathBounce, false);
-                    playerController.gameManager.EndGame();
-                }
-            }
-            else if (_collisionY == CollisionY.Up && !GetRollingFlag())
-            {
-                if (GetJumpFlag())
-                {
-                    playerController.SetPlayerAnimator(playerController.IdDeathUpper, false);
-                    playerController.gameManager.EndGame();
-                }
-                else
-                {
-                    playerController.SetPlayerAnimator(playerController.IdDeathBounce, false);
-                    playerController.gameManager.EndGame();
-                }
             }
         }
         else if (_collisionZ == CollisionZ.Middle)
         {
+            // פגיעה צדית באמצע — Stumble צד (לא מוות)
             if (_collisionX == CollisionX.Right)
                 playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
             else if (_collisionX == CollisionX.Left)
@@ -210,6 +173,7 @@ public class PlayerCollision : MonoBehaviour
         }
         else
         {
+            // פינתיים — Stumble פינה (לא מוות)
             if (_collisionX == CollisionX.Right)
                 playerController.SetPlayerAnimatorWithLayer(playerController.IdStumbleCornerRight);
             else if (_collisionX == CollisionX.Left)
@@ -218,7 +182,6 @@ public class PlayerCollision : MonoBehaviour
     }
 
     // ===== עזרים =====
-
     private bool IsRelevantTag(string t) =>
         t == tagRollOnly || t == tagJumpOnly || t == tagRollOrJump || t == tagRamp || t == tagMovingTrain;
 
@@ -227,16 +190,13 @@ public class PlayerCollision : MonoBehaviour
 
     private bool GetRollingFlag()
     {
-        // משתמש בדגל ה"יציב" מה־PlayerController (כולל חלון חסד)
         try { return playerController.IsRollingNow; } catch { return false; }
     }
 
     private bool GetJumpFlag()
     {
-        // משתמש בדגל ה"יציב" מה־PlayerController (כולל חלון חסד)
         try { return playerController.IsAirborneOrJumping; } catch { }
 
-        // נפילה לגיבוי – זיהוי לפי CharacterController
         var cc = playerController.MyCharacterController;
         return !cc.isGrounded || Mathf.Abs(cc.velocity.y) > 0.05f;
     }
