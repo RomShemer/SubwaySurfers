@@ -33,10 +33,14 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private float hitCooldown = 0.12f; // מונע טיפול כפול על אותו קוליידר/פריים
     private int   _lastHitId = 0;
     private float _lastHitTime = -999f;
+    
+    [SerializeField] private bool debugLogCollisions = false;
+    private Animator _anim;
 
     private void Awake()
     {
         playerController = GetComponent<PlayerController>();
+        _anim = GetComponent<Animator>(); // לוקחים את האנימטור של השחקן
     }
 
     // === נתיבי התנגשות מוצקה (CharacterController) ===
@@ -91,28 +95,32 @@ public class PlayerCollision : MonoBehaviour
     {
         string t = col.tag;
 
-        // רמפה – מתעלמים (מומלץ שהקוליידר שלה יהיה Trigger, או בלייר שלא מתנגש עם השחקן)
-        if (t == tagRamp) return true;
+        if (t == tagRamp) return true; // רמפה – מתעלמים
 
-        bool rollingNow        = GetRollingFlag();   // כולל חלון חסד
-        bool airborneOrJumping = GetJumpFlag();      // כולל חלון חסד
+        // בדיקות קפדניות בלבד
+        bool rollingStrict  = IsActuallyRollingNowStrict();
+        bool jumpingStrict  = IsActuallyJumpingNowStrict();
+
+        if (debugLogCollisions)
+            Debug.Log($"[Collision] tag={t} rollStrict={rollingStrict} jumpStrict={jumpingStrict}  looseRoll={GetRollingFlag()} looseJump={GetJumpFlag()}");
 
         if (t == tagRollOnly)
         {
-            if (rollingNow) return true; // עבר כהלכה
-            FailByCollision(col); return true;
+            if (rollingStrict) return true;      // עבר כי באמת בגלגול
+            FailByCollision(col, true); return true;   // לא בגלגול → כישלון
         }
 
         if (t == tagJumpOnly)
         {
-            if (airborneOrJumping) return true; // עבר כהלכה
-            FailByCollision(col); return true;
+            if (jumpingStrict) return true;      // עבר כי באמת בקפיצה
+            FailByCollision(col, true); return true;
         }
 
         if (t == tagRollOrJump)
         {
-            if (rollingNow || airborneOrJumping) return true; // אחד מספיק
-            FailByCollision(col); return true;
+            // חשוב: לא “חלונות חסד”, רק מצב אמיתי
+            if (rollingStrict || jumpingStrict) return true;
+            FailByCollision(col,true); return true;
         }
 
         if (t == tagMovingTrain)
@@ -125,15 +133,25 @@ public class PlayerCollision : MonoBehaviour
         return false;
     }
 
+
     // כישלון "גנרי" – בוחר אנימציה מתאימה לפי מיקום הפגיעה (כמו שהשתמשת עד עכשיו)
-    private void FailByCollision(Collider collider)
+    private void FailByCollision(Collider collider, bool isHandleTag = false)
     {
         if (playerController == null) return;
 
         if (_collisionZ == CollisionZ.Backward && _collisionX == CollisionX.Middle && _collisionY == CollisionY.LowDown)
         {
             collider.enabled = false; // למניעת טריגר כפול
-            playerController.SetPlayerAnimator(playerController.IdStumbleLow, false);
+            if (!isHandleTag)
+            {
+                playerController.SetPlayerAnimator(playerController.IdStumbleLow, false);
+            }
+            else
+            {            
+                playerController.SetPlayerAnimator(playerController.IdDeathLower, false);
+                playerController.gameManager.EndGame();
+            }
+
             return;
         }
 
@@ -280,4 +298,36 @@ public class PlayerCollision : MonoBehaviour
         if (avg < 0.33f)            return CollisionX.Left;
                                     return CollisionX.Middle;
     }
+    
+    // בדיקה קשיחה: גלגול רק אם באמת באנימציית ROLL (או אם לחצת ממש עכשיו אם יש לך flag כזה)
+
+    private bool IsActuallyRollingNowStrict()
+    {
+        if (_anim)
+        {
+            AnimatorStateInfo st = _anim.GetCurrentAnimatorStateInfo(0); // שכבה 0
+            // אם באנימטור שלך לסטייט של הגלגול יש שם או תגית "Roll"
+            if (st.IsName("Roll") || st.IsTag("Roll"))
+                return true;
+        }
+
+        return false;
+    }
+    
+    private bool IsActuallyJumpingNowStrict()
+    {
+        // אם יש פרמטר/תג באנימטור – נשתמש בו
+        if (_anim)
+        {
+            var st = _anim.GetCurrentAnimatorStateInfo(0); // שכבה 0
+            if (st.IsName("Jump") || st.IsTag("Jump"))
+                return true;
+        }
+
+        // גיבוי: קפיצה אמיתית למעלה (לא נפילה/נגיעה)
+        var cc = playerController.MyCharacterController;
+        return !cc.isGrounded && cc.velocity.y > 0.05f; // תנועה כלפי מעלה
+    }
+
+
 }

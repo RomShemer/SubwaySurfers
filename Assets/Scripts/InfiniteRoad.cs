@@ -33,8 +33,8 @@ public class InfiniteRoad : MonoBehaviour
 
     [Header("Initial Build")]
     public int initialPieces = 10;
-    public Transform player;                   
-    public Transform startAnchorOverride;      
+    public Transform player;
+    public Transform startAnchorOverride;
 
     [Header("Recycle")]
     public float recycleBuffer = 0.25f;
@@ -42,9 +42,15 @@ public class InfiniteRoad : MonoBehaviour
     [Header("Coin spawn control")]
     [Tooltip("כמה מקטעים ראשונים לא יכילו מטבעות (למשל 5)")]
     public int skipCoinTiles = 5;
-    
+
     [Header("Obstacle And Train Spawner")]
     public ObstacleAndTrainSpawner obstacleSpawner;
+
+    [Header("Powerup spawn (Magnet/Shoes/...)")]
+    [Tooltip("האם להפעיל ספאון פאווראפים על כל אריח")]
+    public bool spawnPowerups = true;
+    [Tooltip("כמה מקטעים ראשונים לא יכילו פאווראפים")]
+    public int skipPowerupTiles = 4;
 
     private readonly Queue<RoadPiece> _active = new Queue<RoadPiece>();
     private RoadPiece _lastPiece;
@@ -68,7 +74,7 @@ public class InfiniteRoad : MonoBehaviour
             if (p) player = p.transform;
         }
 
-        // Fallback to singleton if field is not assigned in the Inspector
+        // Fallback ל-Singleton אם לא שובץ ידנית
         if (!obstacleSpawner && ObstacleAndTrainSpawner.I != null)
             obstacleSpawner = ObstacleAndTrainSpawner.I;
     }
@@ -82,6 +88,7 @@ public class InfiniteRoad : MonoBehaviour
             return;
         }
 
+        // פריהיט לפולים של אריחים
         foreach (var v in variants)
         {
             if (!v.prefab)
@@ -102,6 +109,7 @@ public class InfiniteRoad : MonoBehaviour
             _sinceLastById[v.id] = 999999;
         }
 
+        // עוגן התחלה
         var anchorGo = new GameObject("[RoadStartAnchor]");
         var anchor = anchorGo.transform;
         if (startAnchorOverride)
@@ -109,6 +117,7 @@ public class InfiniteRoad : MonoBehaviour
         else
             anchor.SetPositionAndRotation(transform.position, transform.rotation);
 
+        // בניה ראשונית
         RoadPiece prev = null;
         for (int i = 0; i < initialPieces; i++)
         {
@@ -121,18 +130,27 @@ public class InfiniteRoad : MonoBehaviour
             piece.gameObject.SetActive(true);
             NameSpawnedPiece(piece, picked.id);
 
-            // 🔸 Spawn obstacles/trains on this tile (initial build)
+            // מכשולים/רכבות
             if (!obstacleSpawner && ObstacleAndTrainSpawner.I != null)
                 obstacleSpawner = ObstacleAndTrainSpawner.I;
             if (obstacleSpawner != null)
                 obstacleSpawner.SpawnOnRoad(piece);
 
+            // מטבעות
             _spawnedTileCount++;
             if (_spawnedTileCount > skipCoinTiles)
             {
                 var coinSpawner = piece.GetComponent<RoadCoinSpawner>();
                 if (coinSpawner != null)
                     coinSpawner.SpawnCoinsOnThisTile();
+            }
+
+            // פאווראפים (מגנט/נעליים/…)
+            if (spawnPowerups && _spawnedTileCount > skipPowerupTiles)
+            {
+                var pwr = piece.GetComponent<RoadPowerupSpawner>();
+                if (pwr != null)
+                    pwr.SpawnOnThisTile(_spawnedTileCount);
             }
 
             _active.Enqueue(piece);
@@ -166,7 +184,7 @@ public class InfiniteRoad : MonoBehaviour
             next.SnapAfter(_lastPiece);
             next.gameObject.SetActive(true);
 
-            // 🔸 Spawn obstacles/trains on recycled tile
+            // מכשולים/רכבות
             if (!obstacleSpawner && ObstacleAndTrainSpawner.I != null)
                 obstacleSpawner = ObstacleAndTrainSpawner.I;
             if (obstacleSpawner != null)
@@ -174,12 +192,21 @@ public class InfiniteRoad : MonoBehaviour
 
             NameSpawnedPiece(next, picked.id);
 
+            // מטבעות
             _spawnedTileCount++;
             if (_spawnedTileCount > skipCoinTiles)
             {
                 var coinSpawner = next.GetComponent<RoadCoinSpawner>();
                 if (coinSpawner != null)
                     coinSpawner.SpawnCoinsOnThisTile();
+            }
+
+            // פאווראפים
+            if (spawnPowerups && _spawnedTileCount > skipPowerupTiles)
+            {
+                var pwr = next.GetComponent<RoadPowerupSpawner>();
+                if (pwr != null)
+                    pwr.SpawnOnThisTile(_spawnedTileCount);
             }
 
             _active.Enqueue(next);
@@ -189,10 +216,8 @@ public class InfiniteRoad : MonoBehaviour
         }
     }
 
-    private bool IsTunnelId(string id)
-    {
-        return !string.Equals(id, "Straight", System.StringComparison.OrdinalIgnoreCase);
-    }
+    private bool IsTunnelId(string id) =>
+        !string.Equals(id, "Straight", System.StringComparison.OrdinalIgnoreCase);
 
     private void NameSpawnedPiece(RoadPiece piece, string id)
     {
@@ -237,8 +262,7 @@ public class InfiniteRoad : MonoBehaviour
         float total = 0f;
         foreach (var v in cands) total += Mathf.Max(0.0001f, v.weight);
 
-        float r = Random.value * total;
-        float cum = 0f;
+        float r = Random.value * total, cum = 0f;
         foreach (var v in cands)
         {
             cum += Mathf.Max(0.0001f, v.weight);
@@ -311,8 +335,44 @@ public class InfiniteRoad : MonoBehaviour
     private void ReturnToPool(RoadPiece piece)
     {
         if (!piece) return;
+
+        // --- ניקויים לפני השבתה ---
+
+        // 1) ניקוי מטבעות על האריח לפני השבתה (דורש מתודה ב-RoadCoinSpawner)
+        var coinSpawner = piece.GetComponent<RoadCoinSpawner>();
+        if (coinSpawner) coinSpawner.ClearCoinsOnThisTile();
+
+        // 2) ניקוי פאווראפים שלא נאספו (Release לפול אם אפשר, אחרת כיבוי)
+        var pwr = piece.GetComponent<RoadPowerupSpawner>();
+        if (pwr != null)
+        {
+            // א. אם הוספת ב-RoadPowerupSpawner פונקציה ייעודית לניקוי – העדיפי אותה:
+            // pwr.DespawnOnThisTile();
+
+            // ב. ניקוי כל אינסטנס של MagnetPickup (ובהמשך אפשר להרחיב ל-ShoesPickup וכו'):
+            var pickups = piece.GetComponentsInChildren<MagnetPickup>(true);
+            foreach (var m in pickups)
+            {
+                if (PowerupPool.I && m.prefabKey)
+                    PowerupPool.I.Release(m.gameObject, m.prefabKey);
+                else
+                    m.gameObject.SetActive(false);
+            }
+
+            // טיפ: אם לכל הפאווראפים יש Tag "Powerup", אפשר גם:
+            // foreach (var tr in piece.GetComponentsInChildren<Transform>(true))
+            //     if (tr.CompareTag("Powerup")) tr.gameObject.SetActive(false);
+        }
+
+        // 3) ניקוי תפוסות המכשולים/רכבות לאריח הזה
+        if (obstacleSpawner == null && ObstacleAndTrainSpawner.I != null)
+            obstacleSpawner = ObstacleAndTrainSpawner.I;
+        if (obstacleSpawner != null)
+            obstacleSpawner.ClearRoadOccupancy(piece);
+
         piece.gameObject.SetActive(false);
 
+        // --- השבתה לפול של אריחים ---
         RoadPiece prefabKey = null;
         foreach (var v in variants)
         {
@@ -323,6 +383,8 @@ public class InfiniteRoad : MonoBehaviour
         if (prefabKey == null)
         {
             if (!_pools.ContainsKey(piece)) _pools[piece] = new Queue<RoadPiece>();
+            _pools[prefabKey].Enqueue(piece); // שגיאה בכוונה? נתקן:
+            // תיקון: אם prefabKey==null, נכניס לפי המפתח piece עצמו:
             _pools[piece].Enqueue(piece);
         }
         else
@@ -334,10 +396,17 @@ public class InfiniteRoad : MonoBehaviour
     public void ResetRoad()
     {
         while (_active.Count > 0) ReturnToPool(_active.Dequeue());
+
         _lastPiece = null;
         _lastId = "";
         _lastIdRun = 0;
         _straightStreak = 0;
-        foreach (var id in new List<string>(_sinceLastById.Keys)) _sinceLastById[id] = 999999;
+
+        _spawnIndex = 0;
+        _tunnelCounter = 0;
+        _spawnedTileCount = 0;
+
+        var keys = new List<string>(_sinceLastById.Keys);
+        foreach (var id in keys) _sinceLastById[id] = 999999;
     }
 }

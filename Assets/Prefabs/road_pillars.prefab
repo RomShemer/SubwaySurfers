@@ -45,6 +45,8 @@ GameObject:
   - component: {fileID: 7376994479477583762}
   - component: {fileID: 9165396455228055668}
   - component: {fileID: 4547791961372007582}
+  - component: {fileID: 1715432034200791005}
+  - component: {fileID: 4214141558321614991}
   m_Layer: 0
   m_Name: road_pillars
   m_TagString: Untagged
@@ -180,6 +182,78 @@ MonoBehaviour:
   startAnchor: {fileID: 6739410141208418609}
   endAnchor: {fileID: 2746780258892484611}
   lengthOverride: 0
+--- !u!114 &1715432034200791005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5365548803598559227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61e189754d2c24d048c71fdacf76f1f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  coinPrefab: {fileID: 8710693770608966619, guid: d0020115a7b8c4d968d23d8f59e10a3f, type: 3}
+  lanesLocalX:
+  - -1.9
+  - 2
+  yLocalOffset: 0.92
+  spacingLocalZ: 1.5
+  marginStartZ: 0.8
+  marginEndZ: 19
+  tileHasCoinsChance: 0.85
+  weightSingle: 1
+  weightDouble: 1.2
+  weightTriple: 0.6
+  useRandomSubset: 1
+  perLaneChance: 0.6
+  minColumns: 1
+  maxColumns: 2
+  shuffleLanes: 1
+  skipBlockedLanes: 1
+  laneBlockSampleStep: 3
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  coinRadius: 0.28
+  obstacleAfterColumnChance: 0.5
+  aheadDistanceWorld: 6
+  aheadKind: obstacle
+  spawnOnStart: 0
+--- !u!114 &4214141558321614991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5365548803598559227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49de5c8dddf734213b41276294ee73e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  powerups:
+  - id: magnet
+    prefab: {fileID: 2007530635539169403, guid: 41058be8e07194672ae431c25a82ca44, type: 3}
+    weight: 1
+    clearRadius: 1
+  chanceThisTile: 0.1
+  maxPerTile: 1
+  socketsRootName: Sockets
+  lanesLocalX:
+  - -1.9
+  - 2
+  yLocalOffset: 0.92
+  edgePaddingZ: 1
+  slotStepZ: 2.8
+  blockMask:
+    serializedVersion: 2
+    m_Bits: 72
+  extraClearRadius: 0.1
+  skipTilesFromStart: 4
+  player: {fileID: 0}
+  minAheadDistance: 18
 --- !u!1 &8979849254539230476
 GameObject:
   m_ObjectHideFlags: 0

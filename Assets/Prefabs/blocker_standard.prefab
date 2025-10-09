@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 3466933062280020941}
   m_Layer: 3
   m_Name: blocker_standard
-  m_TagString: rollAndJumpbstacle
+  m_TagString: rollAndJumpObstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -129,8 +129,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.9552886, y: 0.74, z: 1.5585114}
-  m_Center: {x: 0.00957796, y: 1.2, z: 0.0000007748604}
+  m_Size: {x: 1.9552886, y: 0.9, z: 1.5585114}
+  m_Center: {x: 0.00957796, y: 1.17, z: 0.0000007748604}
 --- !u!65 &3466933062280020941
 BoxCollider:
   m_ObjectHideFlags: 0

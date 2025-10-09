@@ -13,7 +13,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private ShaderController shaderController;
-
+    [SerializeField] private CoinManager coinManager;
+    
     [Header("State")]
     [SerializeField] private bool canMove = false;
     [SerializeField] private bool _isInputDisabled = false;
@@ -58,6 +59,21 @@ public class GameManager : MonoBehaviour
             else
             {
                 Debug.LogError("[GameManager] No GameObject named 'CurveLevel' found in scene.", this);
+            }
+        }
+
+        if (!coinManager)
+        {
+            var coin = GameObject.Find("CoinManager");
+            if (coin)
+            {
+                coinManager = coin.GetComponent<CoinManager>();
+                if (!coinManager)
+                    Debug.LogError("[GameManager] 'CoinManager' found but missing ShaderController component.", coin);
+            }
+            else
+            {
+                Debug.LogError("[GameManager] No GameObject named 'CoinManager' found in scene.", this);
             }
         }
     }
@@ -127,6 +143,7 @@ public class GameManager : MonoBehaviour
         {
             ObstacleAndTrainSpawner.I?.OnGameRestart();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
+            CoinManager.I?.ResetRun();
             //SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
 

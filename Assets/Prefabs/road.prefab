@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 98705736635507875}
   - component: {fileID: 4728506795050939373}
   - component: {fileID: 2954746726636795385}
+  - component: {fileID: 5366131295416285975}
   m_Layer: 0
   m_Name: road
   m_TagString: Untagged
@@ -119,24 +120,31 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 98705736635507903}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 61e189754d2c24d048c71fdacf76f1f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinPrefab: {fileID: 3732957382957073187, guid: ed81588800e5e4eed9465ba7f69cddd3, type: 3}
+  coinPrefab: {fileID: 8710693770608966619, guid: d0020115a7b8c4d968d23d8f59e10a3f, type: 3}
   lanesLocalX:
-  - -1.2
+  - -2
   - 0
-  - 1.2
-  yLocalOffset: 0.5
-  spacingLocalZ: 3.5
-  marginStartZ: 0.8
+  - 2
+  yLocalOffset: 0.9
+  spacingLocalZ: 1.5
+  marginStartZ: 3
   marginEndZ: 0.8
   tileHasCoinsChance: 0.85
   weightSingle: 1
   weightDouble: 1.2
   weightTriple: 0.6
+  useRandomSubset: 1
+  perLaneChance: 0.6
+  minColumns: 1
+  maxColumns: 2
+  shuffleLanes: 1
+  skipBlockedLanes: 1
+  laneBlockSampleStep: 3
   obstacleMask:
     serializedVersion: 2
     m_Bits: 0
@@ -144,7 +152,7 @@ MonoBehaviour:
   obstacleAfterColumnChance: 0.5
   aheadDistanceWorld: 6
   aheadKind: obstacle
-  spawnOnStart: 1
+  spawnOnStart: 0
 --- !u!114 &2954746726636795385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160,6 +168,40 @@ MonoBehaviour:
   startAnchor: {fileID: 6447011585721207437}
   endAnchor: {fileID: 107179728814436956}
   lengthOverride: 0
+--- !u!114 &5366131295416285975
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 98705736635507903}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49de5c8dddf734213b41276294ee73e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  powerups:
+  - id: magnet
+    prefab: {fileID: 2007530635539169403, guid: 41058be8e07194672ae431c25a82ca44, type: 3}
+    weight: 1
+    clearRadius: 1
+  chanceThisTile: 0.1
+  maxPerTile: 1
+  socketsRootName: Sockets
+  lanesLocalX:
+  - -2
+  - 0
+  - 2
+  yLocalOffset: 0.9
+  edgePaddingZ: 1
+  slotStepZ: 2.8
+  blockMask:
+    serializedVersion: 2
+    m_Bits: 72
+  extraClearRadius: 0.1
+  skipTilesFromStart: 4
+  player: {fileID: 0}
+  minAheadDistance: 18
 --- !u!1 &3175124725086408884
 GameObject:
   m_ObjectHideFlags: 0
