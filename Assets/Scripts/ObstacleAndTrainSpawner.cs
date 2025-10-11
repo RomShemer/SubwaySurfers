@@ -52,6 +52,14 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
 
     public bool spawningEnabled = false;
 
+    // ----- Spacing rules (per lane) -----
+    [Header("Spacing rules (per lane)")]
+    [Tooltip("Minimal Z gap between two non-train obstacles on the SAME lane")]
+    public float minGapObstacleToObstacle = 10f;
+
+    [Tooltip("Minimal Z gap from a TRAIN to the next non-train obstacle on the SAME lane")]
+    public float minGapTrainToObstacle = 12f;
+
     // ----- Requests sent by coins: place obstacle/train ahead on a lane -----
     [System.Serializable]
     public class Request
@@ -72,6 +80,10 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         public Slot(int lane, int zBin) { this.lane = lane; this.zBin = zBin; }
     }
 
+    // NEW: last placements per lane (world Z)
+    private readonly Dictionary<int, float> _lastNonTrainZByLane = new();
+    private readonly Dictionary<int, float> _lastTrainZByLane    = new();
+
     private float _startTime;
 
     private void Awake()
@@ -91,18 +103,14 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     
     private void Update()
     {
-        if (!autoEnableSpawning) return;        // אם את רוצה שליטה ידנית – כבי באינספקטור
-        if (spawningEnabled) return;            // כבר דלוק
+        if (!autoEnableSpawning) return;
+        if (spawningEnabled) return;
 
         bool timeOk = (Time.time - _startTime) >= startNoSpawnSeconds;
         bool distOk = player && player.position.z >= startNoSpawnDistance;
 
         spawningEnabled = requireBothTimeAndDistance ? (timeOk && distOk) : (timeOk || distOk);
-        // טיפ: אם תרצי לראות שזה נדלק בפועל:
-        // if (spawningEnabled) Debug.Log("[Spawner] Spawning enabled");
     }
-
-
 
     // ---------- Public API ----------
 
@@ -116,13 +124,11 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     public void SpawnOnRoad(RoadPiece road)
     {
         if (!road) return;
-        
         if (!spawningEnabled) return; 
 
         if (!_occupiedByRoad.ContainsKey(road))
             _occupiedByRoad[road] = new HashSet<Slot>();
 
-        // Global/start gating + ensure the whole tile starts far enough ahead
         if (!SpawnsGloballyAllowed() || !RoadFarEnoughAhead(road))
             return;
 
@@ -148,14 +154,13 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     {
         bool timeOk = (Time.time - _startTime) >= startNoSpawnSeconds;
         bool distOk = PlayerZ() >= startNoSpawnDistance;
-        // מותר אחרי זמן או אחרי מרחק – החליפי ל && אם תרצי גם וגם
         return timeOk || distOk;
     }
 
     // Ensure the tile begins at least minAheadDistance in front of the player
     private bool RoadFarEnoughAhead(RoadPiece road)
     {
-        if (!TryGetTileZRangeWorld(road, out float zMinW, out float zMaxW)) return false;
+        if (!TryGetTileZRangeWorld(road, out float zMinW, out float _)) return false;
         return (zMinW - PlayerZ()) >= minAheadDistance;
     }
 
@@ -168,13 +173,10 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         {
             var r = _requests[i];
             if (r.worldZ < zMinW || r.worldZ > zMaxW) continue;
-
-            // Leave request in queue if too close to the player yet
             if ((r.worldZ - PlayerZ()) < minAheadDistance) continue;
 
             if (!TryGetLaneWorldX(road, r.laneIndex, out float laneWorldX, out Quaternion laneRot)) continue;
 
-            // Clamp to edge padding
             float rzMin = zMinW + edgePaddingZ;
             float rzMax = zMaxW - edgePaddingZ;
             float clampedZ = Mathf.Clamp(r.worldZ, rzMin, rzMax);
@@ -183,7 +185,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
             Vector3 local = road.transform.InverseTransformPoint(worldPointOnZ);
             local.y = GetRoadCenterY(road);
 
-            if (TryPlace(road, r.laneIndex, local, laneRot, r.kind))
+            if (TryPlace(road, r.laneIndex, local, laneRot, r.kind, clampedZ))
                 _requests.RemoveAt(i);
         }
     }
@@ -193,7 +195,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         if (obstaclePrefabs.Length == 0 && trainPrefabs.Length == 0) return;
         if (!TryGetTileZRangeWorld(road, out float zMinW, out float zMaxW)) return;
 
-        // Do not place if the tile isn't far enough
         if ((zMinW - PlayerZ()) < minAheadDistance) return;
 
         float roll = Random.value;
@@ -205,7 +206,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         int laneIdx = Random.Range(0, GetLaneCount(road));
         if (!TryGetLaneWorldX(road, laneIdx, out float laneWorldX, out Quaternion laneRot)) return;
 
-        // Constrain Z to be within the tile, away from edges, and far enough ahead of the player
         float zFrom = Mathf.Max(zMinW + edgePaddingZ, PlayerZ() + minAheadDistance);
         float zTo   = zMaxW - edgePaddingZ;
         if (zTo <= zFrom) return;
@@ -216,25 +216,48 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         Vector3 local = road.transform.InverseTransformPoint(worldPointOnZ);
         local.y = GetRoadCenterY(road);
 
-        TryPlace(road, laneIdx, local, laneRot, kind);
+        TryPlace(road, laneIdx, local, laneRot, kind, worldZ);
     }
 
-    /// Centralized placement with both duplicate & physics overlap checks.
-    private bool TryPlace(RoadPiece road, int laneIndex, Vector3 localPos, Quaternion laneRot, string kind)
+    // ---- NEW: spacing rules per lane ----
+    private bool SpacingAllows(string kind, int laneIndex, float worldZ)
     {
+        if (kind == "train") return true; // trains can be adjacent
+
+        if (_lastNonTrainZByLane.TryGetValue(laneIndex, out float lastObsZ))
+            if (worldZ - lastObsZ < minGapObstacleToObstacle) return false;
+
+        if (_lastTrainZByLane.TryGetValue(laneIndex, out float lastTrainZ))
+            if (worldZ - lastTrainZ < minGapTrainToObstacle) return false;
+
+        return true;
+    }
+
+    private void RememberPlacement(string kind, int laneIndex, float worldZ)
+    {
+        if (kind == "train")
+            _lastTrainZByLane[laneIndex] = worldZ;
+        else
+            _lastNonTrainZByLane[laneIndex] = worldZ;
+    }
+
+    /// Centralized placement with both duplicate & physics overlap checks + spacing rules.
+    private bool TryPlace(RoadPiece road, int laneIndex, Vector3 localPos, Quaternion laneRot, string kind, float worldZ)
+    {
+        // spacing rules per lane
+        if (!SpacingAllows(kind, laneIndex, worldZ)) return false;
+
         // duplicate filter (logical slot per tile)
         int zBin = Mathf.RoundToInt(localPos.z / Mathf.Max(0.01f, zBinSize));
         var slot = new Slot(laneIndex, zBin);
         var set = _occupiedByRoad[road];
         if (set.Contains(slot)) return false;
 
-        // compute final world pos (child of tile), then physics overlap check
+        // physics overlap
         Vector3 world = road.transform.TransformPoint(localPos) + Vector3.up * yOffset;
-
         if (Physics.CheckSphere(world, overlapRadius, overlapMask, QueryTriggerInteraction.Collide))
             return false;
 
-        // instantiate as child → keep local to avoid sliding with world transforms
         var prefab = PickPrefab(kind);
         if (!prefab) return false;
 
@@ -246,7 +269,8 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         var rb = obj.GetComponent<Rigidbody>();
         if (rb) { rb.isKinematic = true; rb.interpolation = RigidbodyInterpolation.None; }
 
-        set.Add(slot); // mark cell taken
+        set.Add(slot);
+        RememberPlacement(kind, laneIndex, worldZ);   // track last placement per lane
         return true;
     }
 
@@ -263,7 +287,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     {
         zMinW = zMaxW = 0f;
 
-        // Prefer BoxCollider to include full mesh length
         var bc = road.GetComponent<BoxCollider>();
         if (bc)
         {
@@ -275,7 +298,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
             return true;
         }
 
-        // Fallback to renderer bounds
         var r = road.GetComponentInChildren<Renderer>();
         if (!r) return false;
         var b = r.bounds;
@@ -295,7 +317,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
             return true;
         }
 
-        // fallback: constant local X per lane
         int li = Mathf.Clamp(laneIndex, 0, lanesLocalX.Length - 1);
         Vector3 local = new Vector3(lanesLocalX[li], GetRoadCenterY(road), 0f);
         Vector3 world = road.transform.TransformPoint(local);
@@ -319,9 +340,14 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     private void ResetGateAndState()
     {
         _startTime = Time.time;
-        spawningEnabled = false;        // נועל ספאונים בתחילת כל סצנה
-        _requests.Clear();              // לא לשאת בקשות מהראן הקודם
-        _occupiedByRoad.Clear();        // איפוס תפוסות של אריחים
+        spawningEnabled = false;
+        _requests.Clear();
+        _occupiedByRoad.Clear();
+
+        // NEW: reset spacing memory
+        _lastNonTrainZByLane.Clear();
+        _lastTrainZByLane.Clear();
+
         RebindPlayer();
     }
     
@@ -334,7 +360,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         }
     }
 
-// --- NEW: חיבור לאירוע טעינת סצנה ---
+    // --- Scene hooks ---
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -347,7 +373,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        ResetGateAndState(); // כל פעם שטוענים סצנה (כולל Restart) נאפס שער ומצב
+        ResetGateAndState();
     }
 
     public void OnGameRestart()
@@ -359,5 +385,4 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     {
         player = t;
     }
-
 }

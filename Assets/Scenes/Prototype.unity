@@ -2980,6 +2980,8 @@ MonoBehaviour:
   autoEnableSpawning: 1
   requireBothTimeAndDistance: 1
   spawningEnabled: 0
+  minGapObstacleToObstacle: 10
+  minGapTrainToObstacle: 12
 --- !u!4 &343991563
 Transform:
   m_ObjectHideFlags: 0
@@ -10974,7 +10976,63 @@ MonoBehaviour:
     - Tunnel7
     prewarm: 6
   - id: Tunnel3
-    prefab: {fileID: 1158285873494749805, guid: 41db6552bf8b6544fadc6830bfb0d1da, type: 3}
+    prefab: {fileID: 6736473991831266685, guid: 41db6552bf8b6544fadc6830bfb0d1da, type: 3}
+    weight: 1
+    maxConsecutive: 1
+    minSpacing: 0
+    disallowNextIds:
+    - Tunnel1
+    - Tunnel2
+    - Tunnel3
+    - Tunnel4
+    - Tunnel5
+    - Tunnel6
+    - Tunnel7
+    prewarm: 6
+  - id: Tunnel4
+    prefab: {fileID: 5672281598596058771, guid: e9d8f2125f7ef514d88ff3557edfb883, type: 3}
+    weight: 1
+    maxConsecutive: 1
+    minSpacing: 0
+    disallowNextIds:
+    - Tunnel1
+    - Tunnel2
+    - Tunnel3
+    - Tunnel4
+    - Tunnel5
+    - Tunnel6
+    - Tunnel7
+    prewarm: 6
+  - id: Tunnel5
+    prefab: {fileID: 3330715417966650914, guid: 1e1ce79b164586745b2b40684f8de9aa, type: 3}
+    weight: 1
+    maxConsecutive: 1
+    minSpacing: 0
+    disallowNextIds:
+    - Tunnel1
+    - Tunnel2
+    - Tunnel3
+    - Tunnel4
+    - Tunnel5
+    - Tunnel6
+    - Tunnel7
+    prewarm: 6
+  - id: Tunnel6
+    prefab: {fileID: 1493655509680907906, guid: 6226d24f43c880b43bd95ef26bdbb2a2, type: 3}
+    weight: 1
+    maxConsecutive: 1
+    minSpacing: 0
+    disallowNextIds:
+    - Tunnel1
+    - Tunnel2
+    - Tunnel3
+    - Tunnel4
+    - Tunnel5
+    - Tunnel6
+    - Tunnel7
+    prewarm: 6
+  - id: Tunnel7
+    prefab: {fileID: 238755714446352864, guid: 1636a83654ad36048b20081de6804544, type: 3}
     weight: 1
     maxConsecutive: 1
     minSpacing: 0
@@ -16017,7 +16075,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: jumpPower
-      value: 10
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: gameManager
@@ -16029,15 +16087,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: airForwardMultiplier
-      value: 0.75
+      value: 0.85
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: jumpPowerWithBooster
-      value: 13
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: airForwardMultiplierWithBooster
-      value: 0.9
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
