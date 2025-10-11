@@ -14,10 +14,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private ShaderController shaderController;
     [SerializeField] private CoinManager coinManager;
-    
+    [SerializeField] private MagnetCollector magnetCollector;
+
     [Header("State")]
     [SerializeField] private bool canMove = false;
     [SerializeField] private bool _isInputDisabled = false;
+
+    [Header("Audio")]
+    [SerializeField] private AudioSource backgroundMusic;
 
     public bool CanMove { get => canMove; set => canMove = value; }
     public bool IsInputDisabled { get => _isInputDisabled; set => _isInputDisabled = value; }
@@ -76,12 +80,30 @@ public class GameManager : MonoBehaviour
                 Debug.LogError("[GameManager] No GameObject named 'CoinManager' found in scene.", this);
             }
         }
+        
+        if (!magnetCollector)
+        {
+            var coin = GameObject.Find("MagnetCollector");
+            if (coin)
+            {
+                magnetCollector = coin.GetComponent<MagnetCollector>();
+                if (!magnetCollector)
+                    Debug.LogError("[GameManager] 'MagentCollector' found but missing ShaderController component.", coin);
+            }
+            else
+            {
+                Debug.LogError("[GameManager] No GameObject named 'MagentCollector' found in scene.", this);
+            }
+        }
+        
     }
 
     void Start()
     {
         countdown = countdownTime;
         
+        if(!backgroundMusic)
+            backgroundMusic = GameObject.Find("BackgroundMusic").GetComponent<AudioSource>();
             //    if (playerController)
           //  ObstacleAndTrainSpawner.I?.RegisterPlayer(playerController.transform);
     }
@@ -106,6 +128,10 @@ public class GameManager : MonoBehaviour
             {
                 canMove = true;
                 if (playerAnimator) playerAnimator.enabled = true;
+                
+                if(backgroundMusic && !backgroundMusic.isPlaying)
+                    backgroundMusic.Play();
+                
                 countdown = countdownTime;
             }
         }
@@ -159,5 +185,12 @@ public class GameManager : MonoBehaviour
         if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
         if (playerAnimator) playerAnimator.SetBool("isInputDisabled", true);
+        
+        if (playerAnimator) playerAnimator.SetBool("magnetOn", false);
+        
+        if(magnetCollector) magnetCollector.stopMagnet();
+        
+        if(backgroundMusic && backgroundMusic.isPlaying)
+            backgroundMusic.Stop();
     }
 }

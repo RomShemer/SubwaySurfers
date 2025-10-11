@@ -97,6 +97,15 @@ public class PlayerController : MonoBehaviour
 
     private bool isJumpPowerUp = false;
     
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip jumpClip;
+    [SerializeField] private AudioClip rollClip;
+    [SerializeField] private AudioClip footstepLeftClip;
+    [SerializeField] private AudioClip footstepRightClip;
+    [SerializeField] private AudioClip boosterFootstepLeftClip;
+    [SerializeField] private AudioClip boosterFootstepRightClip;
+    
     void Start()
     {
         position = Side.Middle;
@@ -106,6 +115,8 @@ public class PlayerController : MonoBehaviour
         playerCollision = GetComponent<PlayerCollision>();
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         yPosition = -7f;
+        if (!audioSource) audioSource = GetComponent<AudioSource>();
+
     }
 
     void Update()
@@ -159,6 +170,7 @@ public class PlayerController : MonoBehaviour
             SetPlayerAnimator(IdRoll, true);
             characterController.center = new Vector3(0f, 0.2f, 0f);
             characterController.height = 0.4f;
+            audioSource.PlayOneShot(rollClip);
         }
     }
 
@@ -278,9 +290,11 @@ public class PlayerController : MonoBehaviour
                 // מהירות התחלתית בלבד מושפעת מהנעליים
                 yPosition = isJumpPowerUp ? jumpPowerWithBooster : jumpPower;
 
+                audioSource.PlayOneShot(jumpClip);
                 SetPlayerAnimator(IdJump, true, 1f);
                 Debug.Log($"JUMP! booster={isJumpPowerUp}, v0={yPosition}, g={gravity}");
             }
+
             //else if(!isJumping)
          //   {
              //  if(yPosition > -2f) yPosition = -2f;
@@ -294,5 +308,17 @@ public class PlayerController : MonoBehaviour
             if (characterController.velocity.y <= 0f)
                SetPlayerAnimator(IdFall, false);
         }
+    }
+    
+    public void PlayFootstepLeft()
+    {
+        if (audioSource != null)
+            audioSource.PlayOneShot(isJumpPowerUp ? boosterFootstepLeftClip : footstepLeftClip);
+    }
+
+    public void PlayFootstepRight()
+    {
+        if (audioSource != null)
+            audioSource.PlayOneShot(isJumpPowerUp ? boosterFootstepRightClip : footstepRightClip);
     }
 }

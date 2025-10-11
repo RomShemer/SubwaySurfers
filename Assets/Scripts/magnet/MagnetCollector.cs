@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class MagnetCollector : MonoBehaviour
@@ -31,11 +32,20 @@ public class MagnetCollector : MonoBehaviour
     public float pullSpeed = 14f;
     public float snapDistance = 0.5f;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    
     public System.Action OnActivated;
     public System.Action OnExpired;
 
     private bool _wasActive;
-    void Awake()
+
+    private void Start()
+    {
+        if (!audioSource) audioSource = GetComponent<AudioSource>(); 
+    }
+
+  void Awake()
     {
         I = this;
         if (!target) target = transform;
@@ -45,13 +55,22 @@ public class MagnetCollector : MonoBehaviour
     {
         bool was = Active;
         _timer = Mathf.Max(_timer, seconds > 0 ? seconds : defaultDuration);
-        if (!was && Active) OnActivated?.Invoke();
+        if (!was && Active)
+        {
+            OnActivated?.Invoke();
+            if (audioSource && !audioSource.isPlaying) audioSource.Play();
+        }
     }
     void Update()
     {
         bool was = Active;
         if (_timer > 0f) _timer -= Time.deltaTime;
-        if (was && !Active) OnExpired?.Invoke();
+        
+        if (was && !Active)
+        {
+            OnExpired?.Invoke();
+            if (audioSource && audioSource.isPlaying) audioSource.Stop();
+        }
 
     }
 
@@ -85,5 +104,16 @@ public class MagnetCollector : MonoBehaviour
         Vector3 fwd = target.forward;
         float dz = Vector3.Dot(coinWorldPos - aimWorldPos, fwd);
         return inBand && (dz > -backRange) && (dz <= forwardRange);
+    }
+
+    public void stopMagnet()
+    {
+        bool was = Active;
+
+        if (was && !Active)
+        {
+            OnExpired?.Invoke();
+            if (audioSource && audioSource.isPlaying) audioSource.Stop();
+        }
     }
 }

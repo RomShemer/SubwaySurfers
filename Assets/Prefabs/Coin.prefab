@@ -150,5 +150,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   value: 1
-  pickupClip: {fileID: 0}
+  pickupClip: {fileID: 8300000, guid: 4ef412d2f7a2d411799c24d21dabe1f4, type: 3}
   pickupVfx: {fileID: 0}
