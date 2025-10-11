@@ -11,6 +11,10 @@ TagManager:
   - Coin
   - magnetInHand
   - rollAndJumpObstacle
+  - rollAndJumpbstacle
+  - leftJumpBooster
+  - rightJumpBooster
+  - boots
   layers:
   - Default
   - TransparentFX

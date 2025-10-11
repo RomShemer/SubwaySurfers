@@ -5,6 +5,7 @@ using UnityEngine;
 public class RoadPowerupSpawner : MonoBehaviour
 {
     [System.Serializable]
+
     public class PowerupDef
     {
         public string id = "magnet";
@@ -41,7 +42,6 @@ public class RoadPowerupSpawner : MonoBehaviour
     public float minAheadDistance = 18f;           // אל תניחו אריח אם תחילת האריח קרובה מדי לשחקן
 
     private BoxCollider _col;
-
     void Awake()
     {
         _col = GetComponent<BoxCollider>();

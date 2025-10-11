@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
@@ -64,7 +65,16 @@ public class PowerupPool : MonoBehaviour
         if (parent) inst.transform.SetParent(parent, false);
         inst.transform.SetPositionAndRotation(pos, rot);
         //inst.transform.localScale = Vector3.one;
-        inst.transform.localScale = prefab.transform.localScale;
+        if (inst.tag == "boots")
+        {
+            inst.transform.localScale = prefab.transform.localScale*3;
+            float newYPos = inst.transform.localPosition.y - 0.3f;
+            inst.transform.localPosition = new Vector3(inst.transform.localPosition.x, newYPos, inst.transform.localPosition.z);
+        }
+        else
+        {
+            inst.transform.localScale = prefab.transform.localScale*2;
+        }
         return inst;
     }
 

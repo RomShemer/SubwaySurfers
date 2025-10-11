@@ -185,6 +185,10 @@ MonoBehaviour:
     prefab: {fileID: 2007530635539169403, guid: 41058be8e07194672ae431c25a82ca44, type: 3}
     weight: 1
     clearRadius: 1
+  - id: boots
+    prefab: {fileID: 5077263830868135568, guid: 32fb70a0531864d559bff36f61392c1c, type: 3}
+    weight: 1
+    clearRadius: 1
   chanceThisTile: 0.1
   maxPerTile: 1
   socketsRootName: Sockets
@@ -192,7 +196,7 @@ MonoBehaviour:
   - -2
   - 0
   - 2
-  yLocalOffset: 0.9
+  yLocalOffset: 1.2
   edgePaddingZ: 1
   slotStepZ: 2.8
   blockMask:

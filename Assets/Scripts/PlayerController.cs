@@ -28,6 +28,8 @@ public class PlayerController : MonoBehaviour
     public int IdStumbleSideLeft { get => _IdStumbleSideLeft; set => _IdStumbleSideLeft = value; }
     public int IdStumbleSideRight { get => _IdStumbleSideRight; set => _IdStumbleSideRight = value; }
 
+    public bool IsJumpBooster { get => isJumpPowerUp; set => isJumpPowerUp = value; }
+
     public Side PreviousXPos { get => _previousXPos; set => _previousXPos = value; }
     public bool IsStumbleTransitionComplete { get => isStumbleTransitionComplete; set => isStumbleTransitionComplete = value; }
 
@@ -49,8 +51,14 @@ public class PlayerController : MonoBehaviour
 
     [Header("Player Controller")]
     [SerializeField] private float forwardSpeed = 8f;
-    [SerializeField] private float jumpPower = 6f;
+    [SerializeField] private float jumpPower = 12f;
+    [SerializeField] private float jumpPowerWithBooster = 15f;
     [SerializeField] private float dodgeSpeed = 6f;
+    
+    [Header("Jump tuning")]
+    [SerializeField] private float airForwardMultiplier = 0.65f;
+    [SerializeField] private float airForwardMultiplierWithBooster = 0.65f; 
+    [SerializeField] private float gravity = 20f; 
 
     private float rollTimer;
     private float newXPosition;
@@ -82,9 +90,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isRolling;
     [SerializeField] private bool isJumping;
     [SerializeField] private bool isGrounded;
-    [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")]
+    [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")] 
     private bool isStumbleTransitionComplete = false;
 
+    [SerializeField] private float maxFallSpeed = 25f;
+
+    private bool isJumpPowerUp = false;
+    
     void Start()
     {
         position = Side.Middle;
@@ -105,9 +117,9 @@ public class PlayerController : MonoBehaviour
 
         GetSwipe();
         SetPlayerPosition();
-        MovePlayer();
         Jump();
         Roll();
+        MovePlayer();
 
         isGrounded = characterController.isGrounded;
         SetStumblePosition();
@@ -231,15 +243,21 @@ public class PlayerController : MonoBehaviour
 
     private void MovePlayer()
     {
+        float airMul = characterController.isGrounded
+            ? 1f
+            : (isJumpPowerUp ? airForwardMultiplierWithBooster : airForwardMultiplier);
+        float zSpeed = forwardSpeed * airMul;
+
         motionVector = new Vector3(
             xPosition - myTransform.position.x,
             yPosition * Time.deltaTime,
-            forwardSpeed * Time.deltaTime
+            zSpeed * Time.deltaTime
         );
 
         xPosition = Mathf.Lerp(xPosition, newXPosition, Time.deltaTime * dodgeSpeed);
         characterController.Move(motionVector);
     }
+
 
     private void Jump()
     {
@@ -252,20 +270,29 @@ public class PlayerController : MonoBehaviour
 
             if (swipeUp && !isRolling)
             {
-                // mark input BEFORE animation to allow grace window
+                // grace
                 jumpGraceTimer = actionGrace;
 
                 isJumping = true;
-                yPosition = jumpPower;
+
+                // מהירות התחלתית בלבד מושפעת מהנעליים
+                yPosition = isJumpPowerUp ? jumpPowerWithBooster : jumpPower;
+
                 SetPlayerAnimator(IdJump, true, 1f);
+                Debug.Log($"JUMP! booster={isJumpPowerUp}, v0={yPosition}, g={gravity}");
             }
+            //else if(!isJumping)
+         //   {
+             //  if(yPosition > -2f) yPosition = -2f;
+            //}
         }
         else
         {
-            yPosition -= jumpPower * 2f * Time.deltaTime;
-
+            // גרביטציה קבועה, לא תלויה ב-jumpPower
+            yPosition -= gravity * Time.deltaTime;
+            //if (yPosition < -maxFallSpeed) yPosition = -maxFallSpeed;
             if (characterController.velocity.y <= 0f)
-                SetPlayerAnimator(IdFall, false);
+               SetPlayerAnimator(IdFall, false);
         }
     }
 }
