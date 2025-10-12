@@ -1,136 +1,153 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using System.Collections;
 
 public class GameUIManager : MonoBehaviour
 {
+    public static GameUIManager Instance { get; private set; }
+
     [Header("UI Elements")]
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI hiScoreText;
     [SerializeField] private TextMeshProUGUI statusText;
     [SerializeField] private Button startButton;
+    [SerializeField] private Button exitButton;
     [SerializeField] private CanvasGroup fadeOverlay;
 
-    [Header("Score Settings")]
+    [Header("Countdown (visual only)")]
+    [SerializeField] private float countdownSeconds = 3f;
+
+    [Header("Scoring")]
     [SerializeField] private float scoreRate = 10f;
+
     private int currentScore = 0;
     private int highScore = 0;
     private float scoreCounter = 0f;
-    private bool isCountingScore = false;
     private Coroutine countdownRoutine;
+
+    private void Awake()
+    {
+        if (Instance && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        // אם את רוצה שה-UI ישרוד בין סצנות:
+        // DontDestroyOnLoad(gameObject);
+    }
 
     private void Start()
     {
+        EnsureSingleEventSystemOnce();
+
         if (startButton)
-            startButton.onClick.AddListener(OnStartButtonClicked);
+        {
+            startButton.onClick.RemoveAllListeners();
+            startButton.onClick.AddListener(OnStartClicked);
+        }
+        if (exitButton)
+        {
+            exitButton.onClick.RemoveAllListeners();
+            exitButton.onClick.AddListener(OnExitClicked);
+        }
 
-        if (statusText)
-            statusText.text = "";
+        // עוצרים זמן עד START כדי שהקאונטר של ה-GameManager לא יתקדם
+        Time.timeScale = 0f;
 
-        if (fadeOverlay)
-            fadeOverlay.alpha = 0f;
-
-        if (scoreText)
-            scoreText.text = currentScore.ToString("D6");
-
-        highScore = PlayerPrefs.GetInt("HighScore", 0);
-        if (hiScoreText)
-            hiScoreText.text = $"HI {highScore:D6}";
+        PrepareForNewRun();
     }
 
     private void Update()
     {
-        if (GameManager.Instance == null) return;
-
-        // ✅ start counting score only when movement is allowed
-        if (GameManager.Instance.CanMove && !GameManager.Instance.IsGameEnded)
+        if (Time.timeScale > 0.0f)
         {
-            isCountingScore = true;
-            UpdateScore();
+            scoreCounter += Time.deltaTime * scoreRate;
+            currentScore = (int)scoreCounter;
+
+            if (scoreText) scoreText.text = currentScore.ToString("D6");
+
+            if (currentScore > highScore)
+            {
+                highScore = currentScore;
+                PlayerPrefs.SetInt("HighScore", highScore);
+                PlayerPrefs.Save();
+                if (hiScoreText) hiScoreText.text = $"HI {highScore:D6}";
+            }
+        }
+    }
+
+    // -------- Start / Restart --------
+
+    public void OnStartClicked()
+    {
+        if (IsInRestartMode())
+        {
+            // ✅ את הריסטארט עושה ה-GameManager
+            Time.timeScale = 1f; // ליתר ביטחון
+            GameManager.Instance?.RestartScene();
         }
         else
         {
-            isCountingScore = false;
-        }
-
-        if (GameManager.Instance.IsGameEnded)
-        {
-            ShowGameOverUI();
+            if (startButton) startButton.gameObject.SetActive(false);
+            if (countdownRoutine != null) StopCoroutine(countdownRoutine);
+            countdownRoutine = StartCoroutine(PlayCountdownAnimation(countdownSeconds));
         }
     }
 
-    private void UpdateScore()
+    public void OnExitClicked()
     {
-        scoreCounter += Time.deltaTime * scoreRate;
-        currentScore = (int)scoreCounter;
-
-        if (scoreText)
-            scoreText.text = currentScore.ToString("D6");
-
-        if (currentScore > highScore)
+       /* if (IsInRestartMode())
         {
-            highScore = currentScore;
-            PlayerPrefs.SetInt("HighScore", highScore);
-            PlayerPrefs.Save();
-
-            if (hiScoreText)
-                hiScoreText.text = $"HI {highScore:D6}";
+            // ✅ את הריסטארט עושה ה-GameManager
+            Time.timeScale = 1f; // ליתר ביטחון
+            GameManager.Instance?.RestartScene();
         }
+        else
+        {
+            if (exitButton) startButton.gameObject.SetActive(false);
+            if (countdownRoutine != null) StopCoroutine(countdownRoutine);
+            countdownRoutine = StartCoroutine(PlayCountdownAnimation(countdownSeconds));
+        } */
+
+       if (exitButton)
+       {
+           startButton.gameObject.SetActive(true);
+           exitButton.gameObject.SetActive(false);
+       }
+       
+        Time.timeScale = 0f;
+        GameManager.Instance?.RestartScene();
     }
 
-    private void OnStartButtonClicked()
+    private IEnumerator PlayCountdownAnimation(float seconds)
     {
-        var gm = GameManager.Instance;
-        if (gm == null) return;
-
-        if (gm.IsGameEnded)
-        {
-            gm.RestartGame();
-        }
-        else if (!gm.IsGameStarted)
-        {
-            gm.StartCountdown();
-            startButton.gameObject.SetActive(false);
-
-            if (countdownRoutine != null)
-                StopCoroutine(countdownRoutine);
-
-            countdownRoutine = StartCoroutine(PlayCountdownAnimation(gm.CurrentCountdown));
-        }
-    }
-
-    private IEnumerator PlayCountdownAnimation(float startTime)
-    {
-        var gm = GameManager.Instance;
-        if (gm == null) yield break;
-
-        if (fadeOverlay)
-            StartCoroutine(FadeCanvas(fadeOverlay, fadeOverlay.alpha, 0.6f, 0.5f));
+        if (fadeOverlay) StartCoroutine(FadeCanvas(fadeOverlay, fadeOverlay.alpha, 0.6f, 0.25f));
 
         // READY
         if (statusText)
         {
             statusText.text = "READY";
             statusText.alpha = 0f;
-            yield return StartCoroutine(FadeText(statusText, 0f, 1f, 0.5f));
-            yield return new WaitForSeconds(0.7f);
-            yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.5f));
+            yield return StartCoroutine(FadeText(statusText, 0f, 1f, 0.35f));
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.25f));
         }
 
-        // COUNTDOWN 3, 2, 1
-        float timer = startTime;
-        while (timer > 0f && gm.IsCountdownInProgress)
+        // משחרר זמן – עכשיו ה-GameManager יתחיל את הספירה שלו ויפתח תנועה כשהיא תסתיים
+        Time.timeScale = 1f;
+
+        // 3..2..1 על זמן אמיתי
+        float t = seconds;
+        while (t > 0f)
         {
             if (statusText)
             {
-                statusText.text = Mathf.CeilToInt(timer).ToString();
+                statusText.text = Mathf.CeilToInt(t).ToString();
                 statusText.alpha = 0f;
-                yield return StartCoroutine(FadeText(statusText, 0f, 1f, 0.3f));
-                yield return new WaitForSeconds(0.5f);
-                yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.3f));
+                yield return StartCoroutine(FadeText(statusText, 0f, 1f, 0.2f));
+                yield return new WaitForSecondsRealtime(0.6f);
+                yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.2f));
             }
-            timer -= 1f;
+            t -= 1f;
         }
 
         // GO!
@@ -138,74 +155,117 @@ public class GameUIManager : MonoBehaviour
         {
             statusText.text = "GO!";
             statusText.alpha = 0f;
-            yield return StartCoroutine(FadeText(statusText, 0f, 1f, 0.3f));
-            yield return new WaitForSeconds(0.5f);
-            yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.6f));
+            yield return StartCoroutine(FadeText(statusText, 0f, 1f, 0.2f));
+            yield return new WaitForSecondsRealtime(0.5f);
+            yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.3f));
+            statusText.text = "";
         }
 
-        // Fade out overlay and clear text
-        if (fadeOverlay)
-            StartCoroutine(FadeCanvas(fadeOverlay, fadeOverlay.alpha, 0f, 0.8f));
+        if (fadeOverlay) StartCoroutine(FadeCanvas(fadeOverlay, fadeOverlay.alpha, 0f, 0.5f));
+        countdownRoutine = null;
+    }
+    
 
+    // -------- Game Over --------
+
+    public void ShowGameOverUI()
+    {
+        bool gotNewHighScore = currentScore >= PlayerPrefs.GetInt("HighScore", 0);
         if (statusText)
-            statusText.text = "";
+        {
+            statusText.text = gotNewHighScore
+                ? $"GAME OVER!\nNEW HIGH SCORE: {currentScore:D6}"
+                : $"GAME OVER!\nSCORE: {currentScore:D6}";
+            statusText.alpha = 1f;
+        }
 
-        // ✅ Only now enable player movement
-        gm.EnableMovement();
+        if (startButton)
+        {
+            //SetStartButtonLabel("RESTART");
+            //startButton.gameObject.SetActive(true);
+            startButton.gameObject.SetActive(false);
+        }
+        
+        if(exitButton) 
+            exitButton.gameObject.SetActive(true);
+
+
+        if (fadeOverlay) StartCoroutine(FadeCanvas(fadeOverlay, fadeOverlay.alpha, 0.35f, 0.3f));
+    }
+
+    // -------- Prepare New Run --------
+
+    public void PrepareForNewRun()
+    {
+        currentScore = 0;
+        scoreCounter = 0f;
+
+        if (scoreText) scoreText.text = "000000";
+        highScore = PlayerPrefs.GetInt("HighScore", 0);
+        if (hiScoreText) hiScoreText.text = $"HI {highScore:D6}";
+
+        if (statusText) { statusText.text = ""; statusText.alpha = 1f; }
+        if (fadeOverlay) fadeOverlay.alpha = 0f;
+
+        if (startButton)
+        {
+            SetStartButtonLabel("START");
+            startButton.gameObject.SetActive(true);
+            startButton.interactable = true;
+        }
+    }
+
+    // -------- Helpers --------
+
+    private bool IsInRestartMode()
+    {
+        if (!startButton) return false;
+        var tmp = startButton.GetComponentInChildren<TextMeshProUGUI>();
+        return tmp && tmp.text.Trim().ToUpper().Contains("RESTART");
+    }
+
+    private void SetStartButtonLabel(string text)
+    {
+        if (!startButton) return;
+        var tmp = startButton.GetComponentInChildren<TextMeshProUGUI>();
+        if (tmp) tmp.text = text;
     }
 
     private IEnumerator FadeText(TMP_Text text, float from, float to, float duration)
     {
-        float elapsed = 0f;
-        while (elapsed < duration)
+        float e = 0f;
+        while (e < duration)
         {
-            elapsed += Time.deltaTime;
-            if (text)
-                text.alpha = Mathf.Lerp(from, to, elapsed / duration);
+            e += Time.unscaledDeltaTime;
+            if (text) text.alpha = Mathf.Lerp(from, to, e / duration);
             yield return null;
         }
-        if (text)
-            text.alpha = to;
+        if (text) text.alpha = to;
     }
 
     private IEnumerator FadeCanvas(CanvasGroup cg, float from, float to, float duration)
     {
-        float elapsed = 0f;
-        while (elapsed < duration)
+        float e = 0f;
+        while (e < duration)
         {
-            elapsed += Time.deltaTime;
-            if (cg)
-                cg.alpha = Mathf.Lerp(from, to, elapsed / duration);
+            e += Time.unscaledDeltaTime;
+            if (cg) cg.alpha = Mathf.Lerp(from, to, e / duration);
             yield return null;
         }
-        if (cg)
-            cg.alpha = to;
+        if (cg) cg.alpha = to;
     }
 
-    public void ShowGameOverUI()
+    private bool _ensuredEventSystem = false;
+    private void EnsureSingleEventSystemOnce()
     {
-        if (!startButton.gameObject.activeSelf)
-        {
-            bool gotNewHighScore = currentScore >= PlayerPrefs.GetInt("HighScore", 0);
+        if (_ensuredEventSystem) return;
+        _ensuredEventSystem = true;
 
-            if (statusText)
-            {
-                if (gotNewHighScore)
-                    statusText.text = $"GAME OVER!\nNEW HIGH SCORE: {currentScore:D6}";
-                else
-                    statusText.text = $"GAME OVER!\nSCORE: {currentScore:D6}";
-            }
+        var all = FindObjectsOfType<UnityEngine.EventSystems.EventSystem>(includeInactive: true);
+        if (all.Length <= 1) return;
+        for (int i = 1; i < all.Length; i++)
+            Destroy(all[i].gameObject);
 
-            startButton.gameObject.SetActive(true);
-            var buttonText = startButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonText)
-                buttonText.text = "RESTART";
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (startButton)
-            startButton.onClick.RemoveListener(OnStartButtonClicked);
+        Debug.LogWarning($"[GameUIManager] Removed extra EventSystem(s). Kept one, destroyed {all.Length - 1}.");
     }
 }
