@@ -403,4 +403,13 @@ public class PlayerController : MonoBehaviour
         if (audioSource != null)
             audioSource.PlayOneShot(isJumpPowerUp ? boosterFootstepRightClip : footstepRightClip);
     }
+
+    public void CaughtByGuard()
+{
+    if (dead) return;
+    DeathPlayer("caught1");                // השחקן: caught1
+    if (guard != null) guard.CaughtPlayer(); // השוטר/כלב: catch
+    if (gameManager != null) gameManager.EndGame();
+}
+
 }

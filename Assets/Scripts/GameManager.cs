@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,32 +11,32 @@ public class GameManager : MonoBehaviour
     private bool isCountdownInProgress = true;
     [SerializeField] private float fadeOpacity = 0.2f;
 
-    [Header("Refs (שייך באינספקטור אם אפשר)")]
+    [Header("Refs")]
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private ShaderController shaderController;
     [SerializeField] private CoinManager coinManager;
-    [SerializeField] private InfiniteRoad infiniteRoad;   // ← הוספתי
+    [SerializeField] private InfiniteRoad infiniteRoad;
 
     [Header("State")]
     [SerializeField] private bool canMove = false;
     [SerializeField] private bool _isInputDisabled = false;
-
     
     [Header("Audio")]
     [SerializeField] private AudioSource backgroundMusic;
-    
+
     public bool CanMove { get => canMove; set => canMove = value; }
     public bool IsInputDisabled { get => _isInputDisabled; set => _isInputDisabled = value; }
 
-    // --- התחברות לאירוע טעינת סצנה כדי לבצע Rebind ---
+    private bool _prevCanMove = false;
+
     private void OnEnable()  { SceneManager.sceneLoaded += OnSceneLoaded; }
     private void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
 
     private void OnSceneLoaded(Scene s, LoadSceneMode m)
     {
-        RebindSceneRefs();     // למצוא מחדש את האובייקטים של הסצנה
-        ResetStateForRun();    // להחזיר למצב ההתחלתי שלך
+        RebindSceneRefs();
+        ResetStateForRun();
     }
 
     private void Awake()
@@ -45,8 +44,6 @@ public class GameManager : MonoBehaviour
         if (Instance && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject); 
-        
-        // השארתי את האוטו-חיפוש המקורי שלך, אבל נעשה אותו גם ב-RebindSceneRefs
         RebindSceneRefs();
     }
 
@@ -60,41 +57,31 @@ public class GameManager : MonoBehaviour
         countdown = countdownTime;
         isCountdownInProgress = true;
         canMove = false;
+        _prevCanMove = false;
         _isInputDisabled = false;
 
         if (playerAnimator) playerAnimator.enabled = false;
-
-        // רישום שחקן אצל הספונר (אם יש סינגלטון)
         if (playerController) ObstacleAndTrainSpawner.I?.RegisterPlayer(playerController.transform);
 
-        if(backgroundMusic && backgroundMusic.isPlaying) backgroundMusic.Stop(); 
-        // אם חשוב לך לבנות כביש מחדש גם בלי טעינה:
-        // if (infiniteRoad) infiniteRoad.RebuildInitialRoad();
+        if (backgroundMusic && backgroundMusic.isPlaying)
+            backgroundMusic.Stop();
     }
 
     void Update()
     {
-        // נסה להשלים רפרנסים אם משהו חסר (במקום return;)
         if (!playerController || !playerAnimator || !infiniteRoad || !coinManager)
             RebindSceneRefs();
 
-        if (!playerAnimator)
-        {
-            // עדיין חסר? נחכה לפריים הבא, אבל לא נצא מוקדם בלי ניסיון
-            return;
-        }
+        if (!playerAnimator) return;
 
         if (!canMove && countdown > 0f)
         {
             countdown -= Time.deltaTime;
-
             if (playerAnimator) playerAnimator.enabled = false;
 
             if (countdown <= 0f)
             {
-                canMove = true;
-                if (playerAnimator) playerAnimator.enabled = true;
-                if(backgroundMusic && !backgroundMusic.isPlaying) backgroundMusic.Play(); 
+                BeginRun();
                 countdown = countdownTime;
             }
         }
@@ -102,69 +89,48 @@ public class GameManager : MonoBehaviour
         {
             isCountdownInProgress = false;
         }
+
+        // גילוי שינוי מצב מבחוץ (למשל כפתור Start)
+        if (!_prevCanMove && canMove)
+        {
+            OnRunStarted();
+        }
+        _prevCanMove = canMove;
     }
-    
-    /*     void OnGUI()
-       {
-           /*
-           // ה-UI הישן שלך כפי שהיה
-           GUIStyle countdownStyle = new GUIStyle(GUI.skin.GetStyle("label"));
-           countdownStyle.fontSize = 50;
-           countdownStyle.normal.textColor = Color.white; 
 
-           if (!canMove)
-           {
-               GUI.Label(new Rect(Screen.width / 2, Screen.height / 2, 200, 500),
-                         Mathf.Round(countdown).ToString(), countdownStyle);
-           }* /
+    private void BeginRun()
+    {
+        canMove = true;
+        if (playerAnimator) playerAnimator.enabled = true;
+        OnRunStarted();
+    }
 
-           GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 30 };
+    private void OnRunStarted()
+    {
+        AudioListener.pause = false;
 
-           Rect buttonRect = _isInputDisabled
-               ? new Rect((Screen.width - 200) / 2, (Screen.height - 100) / 2, 200, 100)
-               : new Rect(Screen.width - 110, 10, 100, 50);
-
-           if (!_isInputDisabled)
-           {
-               buttonStyle.fontSize = 15;
-               buttonStyle.normal.background = Texture2D.linearGrayTexture;
-           }
-           
-           //if(GUI.Button(buttonRect, "RESTART", buttonStyle))
-           Button restartButton = GameUIManager.Instance.getRestartButton();
-           if (!restartButton )
-           {
-               // חשוב: איפוס לפני טעינה
-               ObstacleAndTrainSpawner.I?.OnGameRestart();
-               CoinManager.I?.ResetRun();
-
-               SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
-               // OnSceneLoaded יעשה Rebind + ResetStateForRun
-           }
-
-           if (isCountdownInProgress)
-           {
-               GUI.color = new Color(0f, 0f, 0f, fadeOpacity);
-               GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
-           }
-       } */
+        if (backgroundMusic)
+        {
+            if (!backgroundMusic.isPlaying)
+                backgroundMusic.Play();
+        }
+    }
 
     public void EndGame()
     {
         if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
+
         if (playerAnimator)
         {
             playerAnimator.SetBool("isInputDisabled", true);
-            //check if guard animation ended
             GameUIManager.Instance.ShowGameOverUI();
         }
-        
-        if(backgroundMusic && backgroundMusic.isPlaying) backgroundMusic.Stop(); 
 
+        if (backgroundMusic && backgroundMusic.isPlaying)
+            backgroundMusic.Stop();
     }
 
-    // --------- כאן אנחנו מוצאים מחדש רפרנסים אחרי טעינה / או אם נעלמו ---------
     private void RebindSceneRefs()
     {
         if (!playerController)
@@ -193,23 +159,33 @@ public class GameManager : MonoBehaviour
 
         if (!backgroundMusic)
         {
-            // חפשי אובייקט בשם "BackgroundMusic" עם AudioSource
-            var go = GameObject.Find("BackgroundMusic");
-            if (go) backgroundMusic = go.GetComponent<AudioSource>();
+            var goByName = GameObject.Find("BackgroundMusic");
+            if (goByName) backgroundMusic = goByName.GetComponent<AudioSource>();
+
+            if (!backgroundMusic)
+            {
+                var all = Resources.FindObjectsOfTypeAll<AudioSource>();
+                foreach (var a in all)
+                {
+                    if (a != null && a.loop)
+                    {
+                        backgroundMusic = a;
+                        break;
+                    }
+                }
+            }
         }
 
-        // ואם יש ספונר – לרשום את השחקן שוב (קריטי לתנועה/מסילות וכו')
         if (playerController) ObstacleAndTrainSpawner.I?.RegisterPlayer(playerController.transform);
     }
-    
+
     public void RestartScene()
     {
-        // מה שעשית ב-OnGUI – פשוט עטוף בפונקציה
         ObstacleAndTrainSpawner.I?.OnGameRestart();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name, LoadSceneMode.Single);
         CoinManager.I?.ResetRun();
     }
-    
+
     void OnDestroy()
     {
         if (Instance == this) Instance = null;

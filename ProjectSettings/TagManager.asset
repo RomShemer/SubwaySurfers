@@ -15,6 +15,7 @@ TagManager:
   - leftJumpBooster
   - rightJumpBooster
   - boots
+  - WallObstacle
   layers:
   - Default
   - TransparentFX

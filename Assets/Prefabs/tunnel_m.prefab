@@ -16,9 +16,9 @@ GameObject:
   - component: {fileID: 8727248741266816313}
   - component: {fileID: 3602615439956202193}
   - component: {fileID: 275855930301826590}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: tunnel_m
-  m_TagString: Untagged
+  m_TagString: WallObstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -151,7 +151,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 5.6001973, y: 9.689885, z: 12.343609}
-  m_Center: {x: 3.8477237, y: 4.247581, z: 18.075842}
+  m_Center: {x: 3.8477237, y: 4.247581, z: 16.5}
 --- !u!65 &3602615439956202193
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -172,7 +172,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 5.7327056, y: 9.689885, z: 12.572036}
-  m_Center: {x: -3.8981092, y: 4.247581, z: 17.961628}
+  m_Center: {x: -3.8981092, y: 4.247581, z: 16.7}
 --- !u!65 &275855930301826590
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -193,7 +193,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 3.5852294, y: 5.2285547, z: 11.129213}
-  m_Center: {x: -0.1602788, y: 6.478246, z: 18.68304}
+  m_Center: {x: -0.1602788, y: 6.478246, z: 18.8}
 --- !u!1 &1002339426439777460
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,7 +203,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8002905123552990950}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: StartAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -438,7 +438,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5747433565269638816}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: EndAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}

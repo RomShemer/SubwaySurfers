@@ -221,9 +221,9 @@ GameObject:
   - component: {fileID: 5131588230485558439}
   - component: {fileID: 8271861456503519794}
   - component: {fileID: 1161944670933492881}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: tunnel_l
-  m_TagString: Untagged
+  m_TagString: WallObstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -378,7 +378,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 10, y: 9.689887, z: 13}
-  m_Center: {x: 4, y: 4.24758, z: 17.399414}
+  m_Center: {x: 4, y: 4.24758, z: 16.81}
 --- !u!65 &8271861456503519794
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -539,7 +539,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3455972462726941465}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: EndAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -570,7 +570,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 188043420394069871}
-  m_Layer: 3
+  m_Layer: 0
   m_Name: StartAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
