@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -131,7 +132,7 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    void Update()
+    /*void Update()
     {
         if (dead)
         {
@@ -181,6 +182,73 @@ public class PlayerController : MonoBehaviour
 
         isGrounded = characterController.isGrounded;
         SetStumblePosition();
+    } */
+    
+    void Update()
+    {
+        // 0) הבטחת רפרנס ל-GameManager
+        if (!gameManager) gameManager = GameManager.Instance;
+
+        // 1) מצב מוות/תפיסה – מנהלים רק את האנימציית תפיסה והכלב, ואז יוצאים
+        if (dead)
+        {
+            canInput = false;
+
+            _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
+            if (guard != null)
+            {
+                guard.curDistance = _curDistance;
+                guard.Folllow(myTransform.position, forwardSpeed);
+
+                if (!playedCaughtOnce)
+                {
+                    SafePlayAnimation(caughtAnimName);
+                    guard.CaughtPlayer();
+                    playedCaughtOnce = true;
+
+                    if (gameManager != null)
+                        gameManager.EndGame();
+                }
+            }
+            return; // אין לוגיקה רגילה כשהשחקן "מת"
+        }
+
+        // 2) אם המשחק לא בתנועה (Countdown או Game Over) – לא זזים ולא קוראים קלט
+        if (!gameManager || !gameManager.CanMove || gameManager.IsInputDisabled)
+        {
+            // אופציה א': לקבע לגמרי (בלי תזוזה בכלל)
+            // return;
+
+            // אופציה ב': לתת רק לגרביטציה "להושיב" לקרקע בלי תנועה קדימה/צד
+            yPosition = characterController.isGrounded 
+                ? Mathf.Min(yPosition, 0f) 
+                : yPosition - gravity * Time.deltaTime;
+
+            // לא לשנות נתיב/מהירות קדימה
+            characterController.Move(new Vector3(0f, yPosition * Time.deltaTime, 0f));
+            return;
+        }
+
+        // 3) לוגיקה רגילה – רק כשהמשחק בתנועה
+        if (rollGraceTimer > 0f) rollGraceTimer -= Time.deltaTime;
+        if (jumpGraceTimer > 0f) jumpGraceTimer -= Time.deltaTime;
+
+        GetSwipe();
+        SetPlayerPosition();
+        Jump();
+        Roll();
+        MovePlayer();
+
+        // שמירה על מרחק הכלב כשהמשחק רץ
+        _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
+        if (guard != null)
+        {
+            guard.curDistance = _curDistance;
+            guard.Folllow(myTransform.position, forwardSpeed);
+        }
+
+        isGrounded = characterController.isGrounded;
+        SetStumblePosition();
     }
 
     // אם תרצה לסגור משחק אחרי תפיסה:
@@ -192,8 +260,21 @@ public class PlayerController : MonoBehaviour
         dead = true;
         canInput = false;
 
+        if (myAnimator) myAnimator.applyRootMotion = false;
+        
         myAnimator.SetLayerWeight(1, 0f);
-        SafePlayAnimation(anim); // אצלך זה "caught1"
+        SafePlayAnimation(anim); 
+        StartCoroutine(DisableControllerAfterDeath());
+    }
+    
+    private System.Collections.IEnumerator DisableControllerAfterDeath()
+    {
+        yPosition = 0f;
+
+        yield return null;
+
+        if (characterController)
+            characterController.detectCollisions = false;
     }
 
     public void PlayAnimation(string anim)
@@ -318,6 +399,7 @@ public class PlayerController : MonoBehaviour
 
     public void SetPlayerAnimator(int id, bool isCrossFade, float fadeTime = 0.1f)
     {
+        if (dead) return;          
         myAnimator.SetLayerWeight(0, 1);
         myAnimator.Play(id);
         ResetCollision();
@@ -404,12 +486,11 @@ public class PlayerController : MonoBehaviour
             audioSource.PlayOneShot(isJumpPowerUp ? boosterFootstepRightClip : footstepRightClip);
     }
 
-    public void CaughtByGuard()
-{
-    if (dead) return;
-    DeathPlayer("caught1");                // השחקן: caught1
-    if (guard != null) guard.CaughtPlayer(); // השוטר/כלב: catch
-    if (gameManager != null) gameManager.EndGame();
-}
-
+    public void CaughtByGuard() 
+    { 
+        if (dead) return; 
+        DeathPlayer("caught1");                // השחקן: caught1
+        if (guard != null) guard.CaughtPlayer(); // השוטר/כלב: catch
+        if (gameManager != null) gameManager.EndGame(); 
+    }  
 }

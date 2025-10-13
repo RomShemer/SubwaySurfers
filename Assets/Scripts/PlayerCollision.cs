@@ -206,7 +206,7 @@ public class PlayerCollision : MonoBehaviour
 
         if (!string.IsNullOrEmpty(tagWallObstacle) && t == tagWallObstacle)
         {
-            TriggerCaught("wallObstacle"); return true;
+            TriggerCaught("WallObstacle"); return true;
         }
 
         return false;

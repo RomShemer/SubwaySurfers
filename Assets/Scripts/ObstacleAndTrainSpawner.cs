@@ -14,53 +14,79 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     [Header("Default random spawn (fallback)")]
     [Range(0f, 1f)] public float chanceToSpawnObstacle = 0.4f;
     [Range(0f, 1f)] public float chanceToSpawnTrain   = 0.3f;
-    public float yOffset = 0.5f;
+
+    [Tooltip("היסט Y קטן מעל הרצפה/רואד. אם הפיבוט של המכשול הוא בתחתית – השאירי 0.")]
+    public float yOffset = 0.0f;
 
     [Header("Placement")]
-    [Tooltip("Parent under each RoadPiece containing lane sockets (optional).")]
+    [Tooltip("שם ה-Transform בכל RoadPiece שמכיל child-ים של מסלולים (אופציונלי).")]
     public string socketsRootName = "Sockets";
-    [Tooltip("Fallback lane X positions (local), used if no sockets exist.")]
+
+    [Tooltip("X לוקאלי למסלולים כשאין Sockets. לדוגמה: שלוש מסילות -2,0,+2")]
     public float[] lanesLocalX = new float[] { -2f, 0f, 2f };
 
     [Header("Start/Visibility gating")]
-    [Tooltip("Reference to the player (found by Tag \"Player\" if empty).")]
+    [Tooltip("הרפרנס לשחקן (אם ריק – ימולא אוטומטית לפי Tag=Player)")]
     public Transform player;
-    [Tooltip("No spawns before this time passes (seconds).")]
+
+    [Tooltip("כמה שניות לא להניח מכשולים בתחילת המשחק")]
     public float startNoSpawnSeconds = 2.0f;
-    [Tooltip("No spawns until player has reached at least this Z distance from origin.")]
+
+    [Tooltip("לא להניח עד שהשחקן הגיע למרחק Z זה מהראשית")]
     public float startNoSpawnDistance = 20f;
-    [Tooltip("Every placement must be at least this many meters ahead of the player.")]
+
+    [Tooltip("להניח רק אם תחילת ה-Road לפחות במרחק זה מהשחקן (ב-Z קדימה)")]
     public float minAheadDistance = 25f;
-    [Tooltip("Padding from both Z edges of the road tile.")]
+
+    [Tooltip("שוליים בזי מכל קצה של האריח")]
     public float edgePaddingZ = 2.0f;
 
-    [Header("Overlap filter (physics)")]
-    [Tooltip("Layers to check when testing for spawn overlap.")]
+    [Header("Overlap filters (physics)")]
+    [Tooltip("ליירים שמבדקים חפיפה סביב נקודת הנחה (כדי לא לדרוס עצמים קיימים)")]
     public LayerMask overlapMask = ~0;
+
+    [Tooltip("רדיוס הבדיקה לחפיפה")]
     public float overlapRadius = 0.6f;
 
+    [Header("Grounding (optional)")]
+    [Tooltip("TRUE: עושים Raycast לקרקע מתחת לנקודת ההנחה; FALSE: אין Raycast ומניחים בגובה ה-Road")]
+    public bool snapToGround = false;
+
+    [Tooltip("אם snapToGround=TRUE: ליירים שנחשבים 'קרקע/מסילה' ל-Raycast")]
+    public LayerMask groundMask = ~0;
+
+    [Tooltip("אם TRUE: בודקים אזור אסור סביב נקודת ההנחה (למנוע הנחה על גגות מנהרות וכו')")]
+    public bool checkForbiddenZones = false;
+
+    [Tooltip("ליירים שנחשבים 'אסורים' (אם checkForbiddenZones=TRUE)")]
+    public LayerMask forbiddenMask = 0;
+
+    [Tooltip("גובה שממנו נעשה את ה-Raycast כלפי מטה (יחסי ל-Y של ה-Road)")]
+    public float raycastHeight = 10f;
+
     [Header("Duplicate filter (per tile logical slots)")]
-    [Tooltip("Size of a Z bin in local units used to deduplicate placements on the same tile.")]
+    [Tooltip("רזולוציית סלוטים לאורך ה-Road, למניעת כפילויות על אותו אריח")]
     public float zBinSize = 0.5f;
 
     [Header("Global spawn gate")]
-    [Tooltip("Auto-enable spawning after time/distance conditions")]
+    [Tooltip("הדלקה אוטומטית של ספאונים לאחר עמידה בתנאי זמן/מרחק")]
     public bool autoEnableSpawning = true;
 
-    [Tooltip("Require BOTH time AND distance to enable (true) or EITHER (false)")]
+    [Tooltip("אם TRUE: דורש גם זמן וגם מרחק; אם FALSE: מספיק אחד מהם")]
     public bool requireBothTimeAndDistance = true;
 
+    [Tooltip("סטטוס נוכחי – האם מותר להניח כעת")]
     public bool spawningEnabled = false;
 
-    // ----- Spacing rules (per lane) -----
+    // ----- ריווח מינימלי באותה מסילה -----
     [Header("Spacing rules (per lane)")]
-    [Tooltip("Minimal Z gap between two non-train obstacles on the SAME lane")]
+    [Tooltip("מרחק מינימלי בין שני מכשולים שאינם רכבות (באותה מסילה, בזי)")]
     public float minGapObstacleToObstacle = 10f;
 
-    [Tooltip("Minimal Z gap from a TRAIN to the next non-train obstacle on the SAME lane")]
+    [Tooltip("מרחק מינימלי מרכבת למכשול שאינו רכבת אחריה (באותה מסילה, בזי)")]
     public float minGapTrainToObstacle = 12f;
 
-    // ----- Requests sent by coins: place obstacle/train ahead on a lane -----
+    // ----- בקשות חכמות (למשל ממטבעות) -----
     [System.Serializable]
     public class Request
     {
@@ -68,9 +94,9 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         public int laneIndex;
         public string kind; // "obstacle" or "train"
     }
-    private readonly List<Request> _requests = new List<Request>();
+    private readonly List<Request> _requests = new();
 
-    // per-road occupancy map: which (lane, zBin) are already used on this tile
+    // מפת תפוסות לכל אריח (למניעת כפילות סלוטים)
     private readonly Dictionary<RoadPiece, HashSet<Slot>> _occupiedByRoad = new();
 
     private struct Slot
@@ -80,7 +106,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         public Slot(int lane, int zBin) { this.lane = lane; this.zBin = zBin; }
     }
 
-    // NEW: last placements per lane (world Z)
+    // "הנחה אחרונה" לכל מסילה (world Z)
     private readonly Dictionary<int, float> _lastNonTrainZByLane = new();
     private readonly Dictionary<int, float> _lastTrainZByLane    = new();
 
@@ -100,31 +126,25 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
             if (p) player = p.transform;
         }
     }
-    
+
     private void Update()
     {
-        if (!autoEnableSpawning) return;
-        if (spawningEnabled) return;
+        if (!autoEnableSpawning || spawningEnabled) return;
 
         bool timeOk = (Time.time - _startTime) >= startNoSpawnSeconds;
         bool distOk = player && player.position.z >= startNoSpawnDistance;
-
         spawningEnabled = requireBothTimeAndDistance ? (timeOk && distOk) : (timeOk || distOk);
     }
 
     // ---------- Public API ----------
-
-    /// Coins call this to request an obstacle/train ahead at a specific world Z and lane
     public void Enqueue(float worldZ, int laneIndex, string kind = "obstacle")
     {
         _requests.Add(new Request { worldZ = worldZ, laneIndex = laneIndex, kind = kind });
     }
 
-    /// Call this whenever a road tile becomes active (initial build and on recycle)
     public void SpawnOnRoad(RoadPiece road)
     {
-        if (!road) return;
-        if (!spawningEnabled) return; 
+        if (!road || !spawningEnabled) return;
 
         if (!_occupiedByRoad.ContainsKey(road))
             _occupiedByRoad[road] = new HashSet<Slot>();
@@ -132,14 +152,10 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         if (!SpawnsGloballyAllowed() || !RoadFarEnoughAhead(road))
             return;
 
-        // 1) consume queued coin-requests that fall inside this tile
         ConsumeQueuedForRoad(road);
-
-        // 2) optional single random spawn on this tile
         TryRandomSpawnOnRoad(road);
     }
 
-    // Optional: clear occupancy when a tile is recycled (call from your pool return)
     public void ClearRoadOccupancy(RoadPiece road)
     {
         if (road && _occupiedByRoad.ContainsKey(road))
@@ -147,7 +163,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     }
 
     // ---------- Internals ----------
-
     private float PlayerZ() => player ? player.position.z : float.NegativeInfinity;
 
     private bool SpawnsGloballyAllowed()
@@ -157,10 +172,9 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         return timeOk || distOk;
     }
 
-    // Ensure the tile begins at least minAheadDistance in front of the player
     private bool RoadFarEnoughAhead(RoadPiece road)
     {
-        if (!TryGetTileZRangeWorld(road, out float zMinW, out float _)) return false;
+        if (!TryGetTileZRangeWorld(road, out float zMinW, out _)) return false;
         return (zMinW - PlayerZ()) >= minAheadDistance;
     }
 
@@ -181,11 +195,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
             float rzMax = zMaxW - edgePaddingZ;
             float clampedZ = Mathf.Clamp(r.worldZ, rzMin, rzMax);
 
-            Vector3 worldPointOnZ = new Vector3(laneWorldX, road.transform.position.y, clampedZ);
-            Vector3 local = road.transform.InverseTransformPoint(worldPointOnZ);
-            local.y = GetRoadCenterY(road);
-
-            if (TryPlace(road, r.laneIndex, local, laneRot, r.kind, clampedZ))
+            if (TryPlace(road, r.laneIndex, laneWorldX, clampedZ, laneRot, r.kind))
                 _requests.RemoveAt(i);
         }
     }
@@ -194,7 +204,6 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     {
         if (obstaclePrefabs.Length == 0 && trainPrefabs.Length == 0) return;
         if (!TryGetTileZRangeWorld(road, out float zMinW, out float zMaxW)) return;
-
         if ((zMinW - PlayerZ()) < minAheadDistance) return;
 
         float roll = Random.value;
@@ -211,18 +220,13 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         if (zTo <= zFrom) return;
 
         float worldZ = Random.Range(zFrom, zTo);
-
-        Vector3 worldPointOnZ = new Vector3(laneWorldX, road.transform.position.y, worldZ);
-        Vector3 local = road.transform.InverseTransformPoint(worldPointOnZ);
-        local.y = GetRoadCenterY(road);
-
-        TryPlace(road, laneIdx, local, laneRot, kind, worldZ);
+        TryPlace(road, laneIdx, laneWorldX, worldZ, laneRot, kind);
     }
 
-    // ---- NEW: spacing rules per lane ----
+    // ---- spacing rules per lane ----
     private bool SpacingAllows(string kind, int laneIndex, float worldZ)
     {
-        if (kind == "train") return true; // trains can be adjacent
+        if (kind == "train") return true; // רכבות יכולות להיות צמודות
 
         if (_lastNonTrainZByLane.TryGetValue(laneIndex, out float lastObsZ))
             if (worldZ - lastObsZ < minGapObstacleToObstacle) return false;
@@ -235,34 +239,52 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
 
     private void RememberPlacement(string kind, int laneIndex, float worldZ)
     {
-        if (kind == "train")
-            _lastTrainZByLane[laneIndex] = worldZ;
-        else
-            _lastNonTrainZByLane[laneIndex] = worldZ;
+        if (kind == "train") _lastTrainZByLane[laneIndex] = worldZ;
+        else                 _lastNonTrainZByLane[laneIndex] = worldZ;
     }
 
-    /// Centralized placement with both duplicate & physics overlap checks + spacing rules.
-    private bool TryPlace(RoadPiece road, int laneIndex, Vector3 localPos, Quaternion laneRot, string kind, float worldZ)
+    /// הנחה בפועל (ריווח, כפילות, חפיפה, וגובה – עם/בלי Raycast)
+    private bool TryPlace(RoadPiece road, int laneIndex, float laneWorldX, float worldZ, Quaternion laneRot, string kind)
     {
-        // spacing rules per lane
         if (!SpacingAllows(kind, laneIndex, worldZ)) return false;
 
-        // duplicate filter (logical slot per tile)
-        int zBin = Mathf.RoundToInt(localPos.z / Mathf.Max(0.01f, zBinSize));
+        if (!WorldZToLocalZ(road, worldZ, out float localZ)) return false;
+        int zBin = Mathf.RoundToInt(localZ / Mathf.Max(0.01f, zBinSize));
         var slot = new Slot(laneIndex, zBin);
         var set = _occupiedByRoad[road];
         if (set.Contains(slot)) return false;
 
-        // physics overlap
-        Vector3 world = road.transform.TransformPoint(localPos) + Vector3.up * yOffset;
-        if (Physics.CheckSphere(world, overlapRadius, overlapMask, QueryTriggerInteraction.Collide))
+        Vector3 worldPoint;
+
+        if (snapToGround)
+        {
+            if (!GetGroundPointWorld(road, laneWorldX, worldZ, out worldPoint))
+                return false;
+
+            if (checkForbiddenZones && IsInForbiddenArea(worldPoint))
+                return false;
+        }
+        else
+        {
+            // בלי Raycast – מניחים על גובה ה-Road
+            float y = GetRoadBaseY(road);
+            worldPoint = new Vector3(laneWorldX, y, worldZ);
+            // אם תרצי – אפשר לאפשר forbidden גם כאן:
+            // if (checkForbiddenZones && IsInForbiddenArea(worldPoint)) return false;
+        }
+
+        // בדיקת חפיפה פיזית (מול פריטים שכבר הונחו)
+        if (Physics.CheckSphere(worldPoint + Vector3.up * 0.05f, overlapRadius, overlapMask, QueryTriggerInteraction.Collide))
             return false;
 
         var prefab = PickPrefab(kind);
         if (!prefab) return false;
 
         var obj = Instantiate(prefab, road.transform, false);
-        obj.transform.localPosition = localPos + Vector3.up * yOffset;
+
+        // world->local (כי ממוקמים כילד של ה-Road)
+        Vector3 local = road.transform.InverseTransformPoint(worldPoint);
+        obj.transform.localPosition = local + Vector3.up * yOffset;
         obj.transform.localRotation = laneRot;
         obj.transform.localScale = Vector3.one;
 
@@ -270,7 +292,15 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         if (rb) { rb.isKinematic = true; rb.interpolation = RigidbodyInterpolation.None; }
 
         set.Add(slot);
-        RememberPlacement(kind, laneIndex, worldZ);   // track last placement per lane
+        RememberPlacement(kind, laneIndex, worldZ);
+        return true;
+    }
+
+    private bool WorldZToLocalZ(RoadPiece road, float worldZ, out float localZ)
+    {
+        Vector3 worldPoint = new Vector3(road.transform.position.x, road.transform.position.y, worldZ);
+        Vector3 local = road.transform.InverseTransformPoint(worldPoint);
+        localZ = local.z;
         return true;
     }
 
@@ -283,6 +313,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         return null;
     }
 
+    // ---- tile extents helpers ----
     private bool TryGetTileZRangeWorld(RoadPiece road, out float zMinW, out float zMaxW)
     {
         zMinW = zMaxW = 0f;
@@ -318,17 +349,43 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         }
 
         int li = Mathf.Clamp(laneIndex, 0, lanesLocalX.Length - 1);
-        Vector3 local = new Vector3(lanesLocalX[li], GetRoadCenterY(road), 0f);
+        Vector3 local = new Vector3(lanesLocalX[li], 0f, 0f);
         Vector3 world = road.transform.TransformPoint(local);
         worldX = world.x;
         rot = road.transform.rotation;
         return true;
     }
 
-    private float GetRoadCenterY(RoadPiece road)
+    // ---- Grounding helpers ----
+    private float GetRoadBaseY(RoadPiece road)
     {
         var bc = road.GetComponent<BoxCollider>();
-        return bc ? bc.center.y : 0f;
+        if (bc)
+            return road.transform.TransformPoint(new Vector3(0f, bc.center.y, 0f)).y;
+        return road.transform.position.y;
+    }
+
+    private bool GetGroundPointWorld(RoadPiece road, float worldX, float worldZ, out Vector3 groundWorld)
+    {
+        float baseY = road.transform.position.y + raycastHeight;
+        Vector3 origin = new Vector3(worldX, baseY, worldZ);
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, raycastHeight * 2f, groundMask, QueryTriggerInteraction.Ignore))
+        {
+            groundWorld = hit.point;
+            return true;
+        }
+
+        // fallback — שמים בגובה הרואד גם אם הרייקאסט לא פגע
+        float y = GetRoadBaseY(road);
+        groundWorld = new Vector3(worldX, y, worldZ);
+        return true;
+    }
+
+    private bool IsInForbiddenArea(Vector3 worldPoint)
+    {
+        if (!checkForbiddenZones || forbiddenMask == 0) return false;
+        const float probeRadius = 0.35f;
+        return Physics.CheckSphere(worldPoint, probeRadius, forbiddenMask, QueryTriggerInteraction.Collide);
     }
 
     private int GetLaneCount(RoadPiece road)
@@ -336,21 +393,24 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         var sockets = road.transform.Find(socketsRootName);
         return (sockets && sockets.childCount > 0) ? sockets.childCount : lanesLocalX.Length;
     }
-    
+
+    // --- Scene hooks ---
+    private void OnEnable()   { SceneManager.sceneLoaded += OnSceneLoaded; }
+    private void OnDisable()  { SceneManager.sceneLoaded -= OnSceneLoaded; }
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) { ResetGateAndState(); }
+    public  void OnGameRestart() { ResetGateAndState(); }
+
     private void ResetGateAndState()
     {
         _startTime = Time.time;
         spawningEnabled = false;
         _requests.Clear();
         _occupiedByRoad.Clear();
-
-        // NEW: reset spacing memory
         _lastNonTrainZByLane.Clear();
         _lastTrainZByLane.Clear();
-
         RebindPlayer();
     }
-    
+
     private void RebindPlayer()
     {
         if (!player || !player.gameObject.activeInHierarchy)
@@ -360,29 +420,5 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         }
     }
 
-    // --- Scene hooks ---
-    private void OnEnable()
-    {
-        SceneManager.sceneLoaded += OnSceneLoaded;
-    }
-
-    private void OnDisable()
-    {
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        ResetGateAndState();
-    }
-
-    public void OnGameRestart()
-    {
-        ResetGateAndState();
-    }
-    
-    public void RegisterPlayer(Transform t)
-    {
-        player = t;
-    }
+    public void RegisterPlayer(Transform t) { player = t; }
 }

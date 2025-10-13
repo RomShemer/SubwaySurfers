@@ -22,6 +22,8 @@ public class GameUIManager : MonoBehaviour
     [Header("Scoring")]
     [SerializeField] private float scoreRate = 10f;
 
+    private bool isGameStarted = false;
+
     private int currentScore = 0;
     private int highScore = 0;
     private float scoreCounter = 0f;
@@ -58,14 +60,14 @@ public class GameUIManager : MonoBehaviour
 
     private void Update()
     {
-        if (Time.timeScale > 0.0f)
+        if (Time.timeScale > 0.0f && isGameStarted && GameManager.Instance.CanMove)
         {
             scoreCounter += Time.deltaTime * scoreRate;
             currentScore = (int)scoreCounter;
 
             if (scoreText) scoreText.text = currentScore.ToString("D6");
 
-            if (currentScore > highScore)
+            if (currentScore > highScore )
             {
                 highScore = currentScore;
                 PlayerPrefs.SetInt("HighScore", highScore);
@@ -95,27 +97,20 @@ public class GameUIManager : MonoBehaviour
 
     public void OnExitClicked()
     {
-       /* if (IsInRestartMode())
-        {
-            // ✅ את הריסטארט עושה ה-GameManager
-            Time.timeScale = 1f; // ליתר ביטחון
-            GameManager.Instance?.RestartScene();
-        }
-        else
-        {
-            if (exitButton) startButton.gameObject.SetActive(false);
-            if (countdownRoutine != null) StopCoroutine(countdownRoutine);
-            countdownRoutine = StartCoroutine(PlayCountdownAnimation(countdownSeconds));
-        } */
-
-       if (exitButton)
-       {
-           startButton.gameObject.SetActive(true);
-           exitButton.gameObject.SetActive(false);
-       }
-       
         Time.timeScale = 0f;
-        GameManager.Instance?.RestartScene();
+        if (statusText)
+        {
+            statusText.text = "";
+            statusText.alpha = 0f;
+        }
+        GameManager.Instance?.RestartScene(); 
+        
+        if (exitButton) 
+        {
+           startButton.gameObject.SetActive(true);
+           exitButton.gameObject.SetActive(false); 
+        }
+       
     }
 
     private IEnumerator PlayCountdownAnimation(float seconds)
@@ -132,10 +127,8 @@ public class GameUIManager : MonoBehaviour
             yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.25f));
         }
 
-        // משחרר זמן – עכשיו ה-GameManager יתחיל את הספירה שלו ויפתח תנועה כשהיא תסתיים
         Time.timeScale = 1f;
 
-        // 3..2..1 על זמן אמיתי
         float t = seconds;
         while (t > 0f)
         {
@@ -159,6 +152,7 @@ public class GameUIManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.5f);
             yield return StartCoroutine(FadeText(statusText, 1f, 0f, 0.3f));
             statusText.text = "";
+            isGameStarted = true;
         }
 
         if (fadeOverlay) StartCoroutine(FadeCanvas(fadeOverlay, fadeOverlay.alpha, 0f, 0.5f));
@@ -170,6 +164,7 @@ public class GameUIManager : MonoBehaviour
 
     public void ShowGameOverUI()
     {
+        isGameStarted = false;
         bool gotNewHighScore = currentScore >= PlayerPrefs.GetInt("HighScore", 0);
         if (statusText)
         {
@@ -181,8 +176,6 @@ public class GameUIManager : MonoBehaviour
 
         if (startButton)
         {
-            //SetStartButtonLabel("RESTART");
-            //startButton.gameObject.SetActive(true);
             startButton.gameObject.SetActive(false);
         }
         
@@ -197,6 +190,7 @@ public class GameUIManager : MonoBehaviour
 
     public void PrepareForNewRun()
     {
+        isGameStarted = false;
         currentScore = 0;
         scoreCounter = 0f;
 

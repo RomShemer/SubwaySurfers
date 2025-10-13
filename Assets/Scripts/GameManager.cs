@@ -61,6 +61,7 @@ public class GameManager : MonoBehaviour
         _isInputDisabled = false;
 
         if (playerAnimator) playerAnimator.enabled = false;
+
         if (playerController) ObstacleAndTrainSpawner.I?.RegisterPlayer(playerController.transform);
 
         if (backgroundMusic && backgroundMusic.isPlaying)
@@ -114,21 +115,30 @@ public class GameManager : MonoBehaviour
             if (!backgroundMusic.isPlaying)
                 backgroundMusic.Play();
         }
+        
     }
 
     public void EndGame()
     {
+        if (!canMove && _isInputDisabled) return;
+        
         if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
 
         if (playerAnimator)
-        {
             playerAnimator.SetBool("isInputDisabled", true);
-            GameUIManager.Instance.ShowGameOverUI();
-        }
 
         if (backgroundMusic && backgroundMusic.isPlaying)
             backgroundMusic.Stop();
+
+        canMove = false;
+        
+        Invoke(nameof(ShowGameOverAfterGuardAnimation), 6f);
+    }
+
+    private void ShowGameOverAfterGuardAnimation()
+    {
+        GameUIManager.Instance?.ShowGameOverUI();
     }
 
     private void RebindSceneRefs()
@@ -141,6 +151,7 @@ public class GameManager : MonoBehaviour
 
         if (!playerAnimator && playerController)
             playerAnimator = playerController.GetComponent<Animator>();
+        
 
         if (!shaderController)
         {
