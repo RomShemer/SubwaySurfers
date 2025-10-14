@@ -8,6 +8,10 @@ public class FollowGuard : MonoBehaviour
     public Animator dogAnimator;
     public Transform guardTransform;
     public Transform dogTransform;
+    
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip startRunSound;
 
     [Header("Follow")]
     [Tooltip("מרחק מהרץ (בציר Z חיובי)")]
@@ -31,6 +35,8 @@ public class FollowGuard : MonoBehaviour
     {
         // בתחילת המשחק – לכבות אנימציות כדי שלא "יזוזו במקום"
         SetAnimatorsEnabled(false);
+        
+        if (!audioSource) audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -143,5 +149,10 @@ public class FollowGuard : MonoBehaviour
     {
         if (guardAnimator && guardAnimator.enabled != enabled) guardAnimator.enabled = enabled;
         if (dogAnimator && dogAnimator.enabled != enabled)     dogAnimator.enabled   = enabled;
+    }
+
+    public void playStartGuardSound()
+    {
+        if(audioSource) audioSource.PlayOneShot(startRunSound);
     }
 } 

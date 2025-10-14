@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Refs")]
     [SerializeField] private PlayerController playerController;
+    [SerializeField] private FollowGuard guardController;
     [SerializeField] private Animator playerAnimator;
     [SerializeField] private ShaderController shaderController;
     [SerializeField] private CoinManager coinManager;
@@ -113,7 +114,10 @@ public class GameManager : MonoBehaviour
         if (backgroundMusic)
         {
             if (!backgroundMusic.isPlaying)
+            {
                 backgroundMusic.Play();
+                guardController.playStartGuardSound();
+            }
         }
         
     }

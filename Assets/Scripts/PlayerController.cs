@@ -106,6 +106,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip footstepRightClip;
     [SerializeField] private AudioClip boosterFootstepLeftClip;
     [SerializeField] private AudioClip boosterFootstepRightClip;
+    [SerializeField] private AudioClip dieSound;
+    [SerializeField] private AudioClip guardStartSound;
     
     // Guard
     public FollowGuard guard;
@@ -330,6 +332,12 @@ public class PlayerController : MonoBehaviour
         //if(GameManager.Instance != null) GameManager.Instance.CanMove = false;
         myAnimator.SetLayerWeight(1, 0f);
         SafePlayAnimation(anim); // אצלך זה "caught1"
+    }
+
+    public void PlayDiePlayerAudio()
+    {
+        if(audioSource) audioSource.PlayOneShot(dieSound);
+
     }
     
     private System.Collections.IEnumerator DisableControllerAfterDeath()
