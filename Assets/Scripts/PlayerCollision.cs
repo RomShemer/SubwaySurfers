@@ -108,6 +108,18 @@ public class PlayerCollision : MonoBehaviour
             MaybeCatchAfterRepeatedStumble(); // בדיקת תפיסה על סטאמבל חוזר כשהשומר קרוב
             return;
         }
+        
+        if (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right)
+        {
+            if (_collisionX == CollisionX.Right)
+                playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
+            else
+                playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
+
+            _lastSideStumbleTime = Time.time;
+            MaybeCatchAfterRepeatedStumble(); // בדיקת תפיסה על סטאמבל חוזר כשהשומר קרוב
+            return;
+        }
 
         // אם לא צד – ניגש לכללי הטאגים
         if (IsRelevantTag(collider.tag))
@@ -173,6 +185,19 @@ public class PlayerCollision : MonoBehaviour
             MaybeCatchAfterRepeatedStumble();
             return true;
         }
+        
+        if (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right)
+        {
+            if (_collisionX == CollisionX.Right)
+                playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
+            else
+                playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
+
+            _lastSideStumbleTime = Time.time;
+            MaybeCatchAfterRepeatedStumble();
+            return true;
+        }
+
 
         // בדיקות "קשיחות" (לא חלונות חסד)
         bool rollingStrict = IsActuallyRollingNowStrict();

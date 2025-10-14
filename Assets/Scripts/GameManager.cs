@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
         ResetStateForRun();
     }
 
-    private void ResetStateForRun()
+    public void ResetStateForRun()
     {
         countdown = countdownTime;
         isCountdownInProgress = true;
@@ -124,6 +124,7 @@ public class GameManager : MonoBehaviour
         
         if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
+        //canMove = false;
 
         if (playerAnimator)
             playerAnimator.SetBool("isInputDisabled", true);
@@ -131,9 +132,9 @@ public class GameManager : MonoBehaviour
         if (backgroundMusic && backgroundMusic.isPlaying)
             backgroundMusic.Stop();
 
-        canMove = false;
-        
-        Invoke(nameof(ShowGameOverAfterGuardAnimation), 6f);
+        //GameUIManager.Instance?.ShowGameOverUI();
+
+        Invoke(nameof(ShowGameOverAfterGuardAnimation), 5f);
     }
 
     private void ShowGameOverAfterGuardAnimation()

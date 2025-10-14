@@ -184,7 +184,7 @@ public class PlayerController : MonoBehaviour
         SetStumblePosition();
     } */
     
-    void Update()
+    /*void Update()
     {
         // 0) הבטחת רפרנס ל-GameManager
         if (!gameManager) gameManager = GameManager.Instance;
@@ -249,12 +249,67 @@ public class PlayerController : MonoBehaviour
 
         isGrounded = characterController.isGrounded;
         SetStumblePosition();
+    } */
+    
+    void Update()
+    {
+        if (dead)
+        {
+            canInput = false;
+
+            // מקרב את השומר
+            _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
+            if (guard != null)
+            {
+                guard.curDistance = _curDistance;
+                guard.Folllow(myTransform.position, forwardSpeed);
+
+                if (!playedCaughtOnce)
+                {
+                    // אנימציית תפיסה של השחקן פעם אחת
+                    SafePlayAnimation(caughtAnimName);
+                    // אנימציית תפיסה של השומר/כלב (אם מימשת ב-FollowGuard)
+                    if (guard != null) guard.CaughtPlayer();
+
+                    playedCaughtOnce = true;
+                    //Invoke("FinishAfterCatch", 1f); // לסגור משחק אחרי שנייה
+                    if (gameManager != null)
+                        gameManager.EndGame();
+                }
+            }
+            return; // לא מריצים לוגיקה רגילה
+        }
+
+        
+        
+        if (!gameManager.CanMove || gameManager.IsInputDisabled) return;
+
+        if (rollGraceTimer > 0f) rollGraceTimer -= Time.deltaTime;
+        if (jumpGraceTimer > 0f) jumpGraceTimer -= Time.deltaTime;
+
+        GetSwipe();
+        SetPlayerPosition();
+        MovePlayer();
+        Jump();
+        Roll();
+
+        _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
+        if (guard != null)
+        {
+            guard.curDistance = _curDistance;
+            guard.Folllow(myTransform.position, forwardSpeed);
+        }
+
+
+        isGrounded = characterController.isGrounded;
+        SetStumblePosition();
+
     }
-
+    
     // אם תרצה לסגור משחק אחרי תפיסה:
-    // private void FinishAfterCatch() { if (gameManager != null) gameManager.EndGame(); }
+    private void FinishAfterCatch() { if (gameManager != null) gameManager.EndGame(); }
 
-    public void DeathPlayer(string anim)
+    /*public void DeathPlayer(string anim)
     {
         if (dead) return;
         dead = true;
@@ -265,6 +320,16 @@ public class PlayerController : MonoBehaviour
         myAnimator.SetLayerWeight(1, 0f);
         SafePlayAnimation(anim); 
         StartCoroutine(DisableControllerAfterDeath());
+    } */
+    
+    public void DeathPlayer(string anim)
+    {
+        if (dead) return;
+        dead = true;
+        canInput = false;
+        //if(GameManager.Instance != null) GameManager.Instance.CanMove = false;
+        myAnimator.SetLayerWeight(1, 0f);
+        SafePlayAnimation(anim); // אצלך זה "caught1"
     }
     
     private System.Collections.IEnumerator DisableControllerAfterDeath()

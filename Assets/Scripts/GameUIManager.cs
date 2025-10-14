@@ -60,7 +60,7 @@ public class GameUIManager : MonoBehaviour
 
     private void Update()
     {
-        if (Time.timeScale > 0.0f && isGameStarted && GameManager.Instance.CanMove)
+        if (Time.timeScale > 0.0f && isGameStarted && GameManager.Instance.CanMove && !GameManager.Instance.IsInputDisabled)
         {
             scoreCounter += Time.deltaTime * scoreRate;
             currentScore = (int)scoreCounter;
@@ -81,7 +81,7 @@ public class GameUIManager : MonoBehaviour
 
     public void OnStartClicked()
     {
-        if (IsInRestartMode())
+        /*if (IsInRestartMode())
         {
             // ✅ את הריסטארט עושה ה-GameManager
             Time.timeScale = 1f; // ליתר ביטחון
@@ -92,7 +92,12 @@ public class GameUIManager : MonoBehaviour
             if (startButton) startButton.gameObject.SetActive(false);
             if (countdownRoutine != null) StopCoroutine(countdownRoutine);
             countdownRoutine = StartCoroutine(PlayCountdownAnimation(countdownSeconds));
-        }
+        } */
+        
+        if (startButton) startButton.gameObject.SetActive(false);
+        GameManager.Instance?.ResetStateForRun();
+        if (countdownRoutine != null) StopCoroutine(countdownRoutine);
+        countdownRoutine = StartCoroutine(PlayCountdownAnimation(countdownSeconds));
     }
 
     public void OnExitClicked()

@@ -144,4 +144,4 @@ public class FollowGuard : MonoBehaviour
         if (guardAnimator && guardAnimator.enabled != enabled) guardAnimator.enabled = enabled;
         if (dogAnimator && dogAnimator.enabled != enabled)     dogAnimator.enabled   = enabled;
     }
-}
+} 
