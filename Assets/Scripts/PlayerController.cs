@@ -403,19 +403,21 @@ public class PlayerController : MonoBehaviour
 
     private void GetSwipe()
     {
-        if (!canInput) { swipeLeft = swipeRight = swipeDown = swipeUp = false; return; }
+        if (!canInput)
+        {
+            swipeLeft = swipeRight = swipeDown = swipeUp = false;
+            return;
+        }
 
+        // תמיד נאפשר קליטת תנועה ימינה ושמאלה, גם באוויר
+        swipeLeft  = Input.GetKeyDown(KeyCode.LeftArrow);
+        swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
+
+        // קפיצה ורול – רק אם על הקרקע
         if (isGrounded)
         {
-            swipeLeft  = Input.GetKeyDown(KeyCode.LeftArrow);
-            swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
-            swipeDown  = Input.GetKeyDown(KeyCode.DownArrow);
-            swipeUp    = Input.GetKeyDown(KeyCode.UpArrow);
-        }
-        else
-        {
-            // allow mid-air roll if you want: uncomment next line
-            // swipeDown = swipeDown || Input.GetKeyDown(KeyCode.DownArrow);
+            swipeUp   = Input.GetKeyDown(KeyCode.UpArrow);
+            swipeDown = Input.GetKeyDown(KeyCode.DownArrow);
         }
     }
 
