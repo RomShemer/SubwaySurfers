@@ -3619,7 +3619,7 @@ AudioSource:
   m_GameObject: {fileID: 399183572}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: 5588498139576900829, guid: 1f28450927a314ab0b2bcf01d6bfb7c1, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: fdee8d724c9034bf3bfdfc13cbf2a395, type: 3}
   m_PlayOnAwake: 0
@@ -3629,7 +3629,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 10
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500
@@ -6628,6 +6628,7 @@ GameObject:
   - component: {fileID: 715699110}
   - component: {fileID: 715699113}
   - component: {fileID: 715699114}
+  - component: {fileID: 715699115}
   m_Layer: 5
   m_Name: musicButton
   m_TagString: Untagged
@@ -6698,9 +6699,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 715699113}
-        m_TargetAssemblyTypeName: MusicToggleButton, Assembly-CSharp
-        m_MethodName: ToggleMusic
+      - m_Target: {fileID: 715699115}
+        m_TargetAssemblyTypeName: GlobalMuteToggleButton, Assembly-CSharp
+        m_MethodName: ToggleMute
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -6755,7 +6756,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 715699108}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cf675e169cc134c48a4d031a3f657ae7, type: 3}
   m_Name: 
@@ -6781,6 +6782,26 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5294118}
   m_EffectDistance: {x: -6, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &715699115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715699108}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eca5ef1502873429cb4dfed395e2387c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mixer: {fileID: 24100000, guid: 1f28450927a314ab0b2bcf01d6bfb7c1, type: 2}
+  masterVolumeParam: MasterVolume
+  buttonImage: {fileID: 715699111}
+  soundOnSprite: {fileID: 21300000, guid: 503cfa076b6bf460e913863d8b991a9f, type: 3}
+  soundOffSprite: {fileID: 21300000, guid: d487b42fad354498ead7ec7658058265, type: 3}
+  soundOnHoverSprite: {fileID: 21300000, guid: ecd95ccc8cb024ed79ba990f7e5819cf, type: 3}
+  soundOffHoverSprite: {fileID: 21300000, guid: 99abf5e719282483cbe25232b5af3b8b, type: 3}
+  prefsKey: global_mute
 --- !u!1001 &718952619
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11216,7 +11237,7 @@ AudioSource:
   m_GameObject: {fileID: 1298848294}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -8185469924257299272, guid: 1f28450927a314ab0b2bcf01d6bfb7c1, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 38679c3a08a514b0e8a23fe7a28c386b, type: 3}
   m_PlayOnAwake: 0
@@ -11226,7 +11247,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 220
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500
@@ -17812,7 +17833,7 @@ PrefabInstance:
     - target: {fileID: 2293275382374465641, guid: 8ccea4a6a280b407982a6e08f28d7d2b, type: 3}
       propertyPath: startRunSound
       value: 
-      objectReference: {fileID: 8300000, guid: c7d9faf62727542e3ba4b931cdb08a81, type: 3}
+      objectReference: {fileID: 8300000, guid: b7e8e7e5e80f140b0a1346f12316c225, type: 3}
     - target: {fileID: 3267095270590220762, guid: 8ccea4a6a280b407982a6e08f28d7d2b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: -0.0036962114
@@ -18505,6 +18526,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 6a28d0fa441af4f409f1ac073eb56565, type: 3}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
+      propertyPath: dodgeClip
+      value: 
+      objectReference: {fileID: 8300000, guid: 412415ffcb76940969d7b93b98338292, type: 3}
+    - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: isJumping
       value: 0
       objectReference: {fileID: 0}
@@ -18527,7 +18552,7 @@ PrefabInstance:
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: guardStartSound
       value: 
-      objectReference: {fileID: 8300000, guid: c7d9faf62727542e3ba4b931cdb08a81, type: 3}
+      objectReference: {fileID: 8300000, guid: b7e8e7e5e80f140b0a1346f12316c225, type: 3}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: footstepLeftClip
       value: 
@@ -18536,6 +18561,10 @@ PrefabInstance:
       propertyPath: footstepRightClip
       value: 
       objectReference: {fileID: 8300000, guid: 15f254a2c2b2b4a2886c760c5136da0f, type: 3}
+    - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
+      propertyPath: guardApproachClip
+      value: 
+      objectReference: {fileID: 8300000, guid: c7ffd8b81cc584f799dcaf7f0c91b441, type: 3}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: airForwardMultiplier
       value: 0.85

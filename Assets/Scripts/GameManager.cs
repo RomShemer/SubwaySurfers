@@ -125,7 +125,8 @@ public class GameManager : MonoBehaviour
     public void EndGame()
     {
         if (!canMove && _isInputDisabled) return;
-        
+        MagnetCollector.I?.Deactivate();  
+
         if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
         //canMove = false;

@@ -46,7 +46,16 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private float stumbleCatchWindow = 0.75f;
     private float _lastNonFatalStumbleTime = -999f;
 
+    [Header("Debug")]
     [SerializeField] private bool debugLogCollisions = false;
+
+    // ספים לזיהוי צד לפי נורמל/נקודת פגיעה
+    [Header("Side detection by surface normal")]
+    [Tooltip("כמה ה-X של הנורמל צריך לגבור על Z כדי להיחשב 'פגיעת צד'")]
+    [Range(0f, 1f)] public float sideNormalBias = 0.1f;   // 0.1 = מעט עדיפות
+    [Tooltip("התעלמות מתקרת/רצפת המנהרה (נורמלים אנכיים מדי)")]
+    [Range(0f, 1f)] public float ignoreIfAbsY = 0.7f;     // אם |normal.y| > 0.7 → לא צד
+
     private Animator _anim;
 
     private void Awake()
@@ -55,15 +64,20 @@ public class PlayerCollision : MonoBehaviour
         _anim = GetComponent<Animator>();
     }
 
-    // נתיב התנגשות מוצקה (CharacterController)
+    // נתיב התנגשות מוצקה (CharacterController) — כולל מידע על normal/point
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.collider == null) return;
-        OnCharacterCollision(hit.collider);
+        OnCharacterCollision(hit.collider, false, hit.normal, hit.point, true);
     }
 
     // API ציבורי למסלולים אחרים
     public void OnCharacterCollision(Collider collider, bool bypassFilters = false)
+    {
+        OnCharacterCollision(collider, bypassFilters, Vector3.zero, Vector3.zero, false);
+    }
+
+    private void OnCharacterCollision(Collider collider, bool bypassFilters, Vector3 hitNormal, Vector3 hitPoint, bool hasHit)
     {
         if (!collider) return;
         if (collider.isTrigger) return; // אם עובדים עם טריגרים – אפשר להוסיף OnTriggerEnter
@@ -75,10 +89,10 @@ public class PlayerCollision : MonoBehaviour
 
         if (!bypassFilters && !IsOnRelevantLayer(collider)) return;
 
-        HandleCollisionInternal(collider);
+        HandleCollisionInternal(collider, hitNormal, hitPoint, hasHit);
     }
 
-    private void HandleCollisionInternal(Collider collider)
+    private void HandleCollisionInternal(Collider collider, Vector3 hitNormal, Vector3 hitPoint, bool hasHit)
     {
         if (playerController == null || playerController.MyCharacterController == null)
             return;
@@ -87,7 +101,14 @@ public class PlayerCollision : MonoBehaviour
         if (Time.time - _lastSideStumbleTime < sideStumbleGrace)
             return;
 
-        // חישוב "איפה פגענו"
+        // ---- 1) זיהוי פגיעת צד אמיתית לפי נורמל/נקודת פגיעה (עדיף על חפיפת Bounds) ----
+        if (hasHit && IsSideHitByNormal(hitNormal, out CollisionX sideByNormal))
+        {
+            PlaySideStumble(sideByNormal);
+            return; // חשוב: לא להמשיך ל-Tagים כדי לא להפוך את זה ל"מוות"
+        }
+
+        // ---- 2) חישוב "איפה פגענו" לפי חפיפת Bounds (פולבק) ----
         _collisionX = GetCollisionX(collider);
         _collisionY = GetCollisionY(collider);
         _collisionZ = GetCollisionZ(collider);
@@ -95,33 +116,14 @@ public class PlayerCollision : MonoBehaviour
         if (debugLogCollisions)
             Debug.Log($"[HIT] name={collider.name} tag={collider.tag} layer={collider.gameObject.layer} trig={collider.isTrigger}  X={_collisionX} Y={_collisionY} Z={_collisionZ}");
 
-        // ✅ קדימות: פגיעה צדית באמצע → תמיד Stumble Side (לא מוות)
-        if (_collisionZ == CollisionZ.Middle &&
-            (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right))
-        {
-            if (_collisionX == CollisionX.Right)
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
-            else
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
-
-            _lastSideStumbleTime = Time.time;
-            MaybeCatchAfterRepeatedStumble(); // בדיקת תפיסה על סטאמבל חוזר כשהשומר קרוב
-            return;
-        }
-        
+        // קדימות: פגיעה צדית → תמיד Stumble Side
         if (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right)
         {
-            if (_collisionX == CollisionX.Right)
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
-            else
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
-
-            _lastSideStumbleTime = Time.time;
-            MaybeCatchAfterRepeatedStumble(); // בדיקת תפיסה על סטאמבל חוזר כשהשומר קרוב
+            PlaySideStumble(_collisionX);
             return;
         }
 
-        // אם לא צד – ניגש לכללי הטאגים
+        // ---- 3) אם לא צד – ניגש לכללי הטאגים ----
         if (IsRelevantTag(collider.tag))
         {
             if (HandleByTags(collider)) return;
@@ -129,8 +131,39 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
-        // ללא טאג → מכשול רגיל
+        // ---- 4) ללא טאג → מכשול רגיל ----
         FailByCollision(collider);
+    }
+
+    // ===== פגיעת צד מהירה =====
+    private void PlaySideStumble(CollisionX side)
+    {
+        if (side == CollisionX.Right)
+            playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
+        else
+            playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
+
+        _lastSideStumbleTime = Time.time;
+        MaybeCatchAfterRepeatedStumble();
+    }
+
+    // זיהוי צד לפי נורמל ההתנגשות
+    private bool IsSideHitByNormal(Vector3 n, out CollisionX side)
+    {
+        side = CollisionX.None;
+
+        // מתעלמים מרצפה/תקרה
+        if (Mathf.Abs(n.y) > ignoreIfAbsY) return false;
+
+        // אם רכיב ה-X של הנורמל דומיננטי ביחס ל-Z → זו פגיעת צד
+        if (Mathf.Abs(n.x) > Mathf.Abs(n.z) + sideNormalBias)
+        {
+            // נקבע כיוון: normal מצביע "החוצה" מהקיר; עבור נתיבים סטנדרטיים:
+            // אם normal.x > 0 → קיר משמאל (שדוחף ימינה) → פגענו בצד שמאל
+            side = n.x > 0f ? CollisionX.Left : CollisionX.Right;
+            return true;
+        }
+        return false;
     }
 
     // ===== תפיסה (caught1) =====
@@ -155,12 +188,10 @@ public class PlayerCollision : MonoBehaviour
     {
         if (IsGuardClose() && Time.time - _lastNonFatalStumbleTime <= stumbleCatchWindow)
         {
-            // סטאמבל שני בזמן קצר כשהשוטר קרוב → תפיסה
-            playerController.CaughtByGuard(); // דורש פונקציה קצרה ב-PlayerController (ראה למטה)
+            playerController.CaughtByGuard(); // כבר מטפל גם באנימציה וגם בסיום משחק
         }
         else
         {
-            // סטאמבל ראשון או שהשוטר לא מספיק קרוב → רק נרשום זמן
             _lastNonFatalStumbleTime = Time.time;
         }
     }
@@ -171,33 +202,6 @@ public class PlayerCollision : MonoBehaviour
         string t = col.tag;
 
         if (t == tagRamp) return true; // מתעלמים מרמפה
-
-        // אם איכשהו הגענו לכאן עם פגיעה צדית – נטפל כסטאמבל צד
-        if (_collisionZ == CollisionZ.Middle &&
-            (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right))
-        {
-            if (_collisionX == CollisionX.Right)
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
-            else
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
-
-            _lastSideStumbleTime = Time.time;
-            MaybeCatchAfterRepeatedStumble();
-            return true;
-        }
-        
-        if (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right)
-        {
-            if (_collisionX == CollisionX.Right)
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
-            else
-                playerController.SetPlayerAnimator(playerController.IdStumbleSideLeft, false);
-
-            _lastSideStumbleTime = Time.time;
-            MaybeCatchAfterRepeatedStumble();
-            return true;
-        }
-
 
         // בדיקות "קשיחות" (לא חלונות חסד)
         bool rollingStrict = IsActuallyRollingNowStrict();
@@ -242,7 +246,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (playerController == null) return;
 
-        // Stumble נמוך – אם הגיע מהגדרת טאג (כלומר נכשל בדרישה), זה תפיסה; אחרת זה סתם סטאמבל
+        // Stumble נמוך
         if (_collisionZ == CollisionZ.Backward && _collisionX == CollisionX.Middle && _collisionY == CollisionY.LowDown)
         {
             collider.enabled = false;
@@ -283,7 +287,7 @@ public class PlayerCollision : MonoBehaviour
         }
         else if (_collisionZ == CollisionZ.Middle)
         {
-            // (לגיבוי; בפועל הקדימות כבר תפסה למעלה)
+            // גיבוי — בפועל side כבר תופס קודם
             if (_collisionX == CollisionX.Right)
                 playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
             else if (_collisionX == CollisionX.Left)
@@ -298,8 +302,6 @@ public class PlayerCollision : MonoBehaviour
                 playerController.SetPlayerAnimatorWithLayer(playerController.IdStumbleCornerRight);
             else if (_collisionX == CollisionX.Left)
                 playerController.SetPlayerAnimatorWithLayer(playerController.IdStumbleCornerLeft);
-            // פינתיים לרוב לא נחשבים "לא קטלני" במשחקים—אם תרצה לספור לרצף, אפשר להוסיף גם כאן:
-            // _lastNonFatalStumbleTime = Time.time;
         }
     }
 

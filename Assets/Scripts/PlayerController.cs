@@ -35,11 +35,10 @@ public class PlayerController : MonoBehaviour
     public bool IsStumbleTransitionComplete { get => isStumbleTransitionComplete; set => isStumbleTransitionComplete = value; }
 
     [Header("Action windows")]
-    [SerializeField] private float actionGrace = 0.15f;   // short forgiveness window
+    [SerializeField] private float actionGrace = 0.15f;
     private float rollGraceTimer;
     private float jumpGraceTimer;
 
-    // Public flags used by collision logic
     public bool IsRollingNow => isRolling || rollGraceTimer > 0f;
     public bool IsAirborneOrJumping =>
         !characterController.isGrounded ||
@@ -55,11 +54,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpPower = 12f;
     [SerializeField] private float jumpPowerWithBooster = 15f;
     [SerializeField] private float dodgeSpeed = 6f;
-    
+
     [Header("Jump tuning")]
     [SerializeField] private float airForwardMultiplier = 0.65f;
-    [SerializeField] private float airForwardMultiplierWithBooster = 0.65f; 
-    [SerializeField] private float gravity = 20f; 
+    [SerializeField] private float airForwardMultiplierWithBooster = 0.65f;
+    [SerializeField] private float gravity = 20f;
 
     private float rollTimer;
     private float newXPosition;
@@ -91,13 +90,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isRolling;
     [SerializeField] private bool isJumping;
     [SerializeField] private bool isGrounded;
-    [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")] 
+    [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")]
     private bool isStumbleTransitionComplete = false;
 
     [SerializeField] private float maxFallSpeed = 25f;
 
     private bool isJumpPowerUp = false;
-    
+
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip jumpClip;
@@ -108,7 +107,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip boosterFootstepRightClip;
     [SerializeField] private AudioClip dieSound;
     [SerializeField] private AudioClip guardStartSound;
-    
+
+    [Header("SFX: Lane Change")]
+    [SerializeField] private AudioClip dodgeClip;
+
+    [Header("SFX: Guard Approaches on Side Stumble")]  // ← חדש
+    [SerializeField] private AudioClip guardApproachClip;
+    [SerializeField] private float guardApproachMinInterval = 0.35f;
+
+    private float _lastGuardApproachTime = -999f;
+
     // Guard
     public FollowGuard guard;
     private float _curDistance = 0.6f;
@@ -128,138 +136,17 @@ public class PlayerController : MonoBehaviour
         myAnimator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         playerCollision = GetComponent<PlayerCollision>();
-        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        gameManager = GameObject.Find("GameManager")?.GetComponent<GameManager>();
         yPosition = -7f;
         if (!audioSource) audioSource = GetComponent<AudioSource>();
-
     }
 
-    /*void Update()
-    {
-        if (dead)
-        {
-            canInput = false;
-
-            // מקרב את השומר
-            _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
-            if (guard != null)
-            {
-                guard.curDistance = _curDistance;
-                guard.Folllow(myTransform.position, forwardSpeed);
-
-                if (!playedCaughtOnce)
-                {
-                    // אנימציית תפיסה של השחקן פעם אחת
-                    SafePlayAnimation(caughtAnimName);
-                    // אנימציית תפיסה של השומר/כלב (אם מימשת ב-FollowGuard)
-                    if (guard != null) guard.CaughtPlayer();
-
-                    playedCaughtOnce = true;
-                    // אם תרצה: Invoke("FinishAfterCatch", 1f); // לסגור משחק אחרי שנייה
-                    if (gameManager != null)
-                    gameManager.EndGame();
-                }
-            }
-
-            return; // לא מריצים לוגיקה רגילה
-        }
-
-        if (!gameManager.CanMove || gameManager.IsInputDisabled) return;
-
-        if (rollGraceTimer > 0f) rollGraceTimer -= Time.deltaTime;
-        if (jumpGraceTimer > 0f) jumpGraceTimer -= Time.deltaTime;
-
-        GetSwipe();
-        SetPlayerPosition();
-        Jump();
-        Roll();
-        MovePlayer();
-
-        _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
-        if (guard != null)
-        {
-            guard.curDistance = _curDistance;
-            guard.Folllow(myTransform.position, forwardSpeed);
-        }
-
-        isGrounded = characterController.isGrounded;
-        SetStumblePosition();
-    } */
-    
-    /*void Update()
-    {
-        // 0) הבטחת רפרנס ל-GameManager
-        if (!gameManager) gameManager = GameManager.Instance;
-
-        // 1) מצב מוות/תפיסה – מנהלים רק את האנימציית תפיסה והכלב, ואז יוצאים
-        if (dead)
-        {
-            canInput = false;
-
-            _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
-            if (guard != null)
-            {
-                guard.curDistance = _curDistance;
-                guard.Folllow(myTransform.position, forwardSpeed);
-
-                if (!playedCaughtOnce)
-                {
-                    SafePlayAnimation(caughtAnimName);
-                    guard.CaughtPlayer();
-                    playedCaughtOnce = true;
-
-                    if (gameManager != null)
-                        gameManager.EndGame();
-                }
-            }
-            return; // אין לוגיקה רגילה כשהשחקן "מת"
-        }
-
-        // 2) אם המשחק לא בתנועה (Countdown או Game Over) – לא זזים ולא קוראים קלט
-        if (!gameManager || !gameManager.CanMove || gameManager.IsInputDisabled)
-        {
-            // אופציה א': לקבע לגמרי (בלי תזוזה בכלל)
-            // return;
-
-            // אופציה ב': לתת רק לגרביטציה "להושיב" לקרקע בלי תנועה קדימה/צד
-            yPosition = characterController.isGrounded 
-                ? Mathf.Min(yPosition, 0f) 
-                : yPosition - gravity * Time.deltaTime;
-
-            // לא לשנות נתיב/מהירות קדימה
-            characterController.Move(new Vector3(0f, yPosition * Time.deltaTime, 0f));
-            return;
-        }
-
-        // 3) לוגיקה רגילה – רק כשהמשחק בתנועה
-        if (rollGraceTimer > 0f) rollGraceTimer -= Time.deltaTime;
-        if (jumpGraceTimer > 0f) jumpGraceTimer -= Time.deltaTime;
-
-        GetSwipe();
-        SetPlayerPosition();
-        Jump();
-        Roll();
-        MovePlayer();
-
-        // שמירה על מרחק הכלב כשהמשחק רץ
-        _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
-        if (guard != null)
-        {
-            guard.curDistance = _curDistance;
-            guard.Folllow(myTransform.position, forwardSpeed);
-        }
-
-        isGrounded = characterController.isGrounded;
-        SetStumblePosition();
-    } */
-    
     void Update()
     {
         if (dead)
         {
             canInput = false;
 
-            // מקרב את השומר
             _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
             if (guard != null)
             {
@@ -268,22 +155,16 @@ public class PlayerController : MonoBehaviour
 
                 if (!playedCaughtOnce)
                 {
-                    // אנימציית תפיסה של השחקן פעם אחת
                     SafePlayAnimation(caughtAnimName);
-                    // אנימציית תפיסה של השומר/כלב (אם מימשת ב-FollowGuard)
                     if (guard != null) guard.CaughtPlayer();
-
                     playedCaughtOnce = true;
-                    //Invoke("FinishAfterCatch", 1f); // לסגור משחק אחרי שנייה
                     if (gameManager != null)
                         gameManager.EndGame();
                 }
             }
-            return; // לא מריצים לוגיקה רגילה
+            return;
         }
 
-        
-        
         if (!gameManager.CanMove || gameManager.IsInputDisabled) return;
 
         if (rollGraceTimer > 0f) rollGraceTimer -= Time.deltaTime;
@@ -302,52 +183,32 @@ public class PlayerController : MonoBehaviour
             guard.Folllow(myTransform.position, forwardSpeed);
         }
 
-
         isGrounded = characterController.isGrounded;
         SetStumblePosition();
-
     }
-    
-    // אם תרצה לסגור משחק אחרי תפיסה:
+
     private void FinishAfterCatch() { if (gameManager != null) gameManager.EndGame(); }
 
-    /*public void DeathPlayer(string anim)
-    {
-        if (dead) return;
-        dead = true;
-        canInput = false;
-
-        if (myAnimator) myAnimator.applyRootMotion = false;
-        
-        myAnimator.SetLayerWeight(1, 0f);
-        SafePlayAnimation(anim); 
-        StartCoroutine(DisableControllerAfterDeath());
-    } */
-    
     public void DeathPlayer(string anim)
     {
         if (dead) return;
         dead = true;
         canInput = false;
-        //if(GameManager.Instance != null) GameManager.Instance.CanMove = false;
+        MagnetCollector.I?.Deactivate();
         myAnimator.SetLayerWeight(1, 0f);
-        SafePlayAnimation(anim); // אצלך זה "caught1"
+        SafePlayAnimation(anim);
     }
 
     public void PlayDiePlayerAudio()
     {
-        if(audioSource) audioSource.PlayOneShot(dieSound);
-
+        if (audioSource) audioSource.PlayOneShot(dieSound);
     }
-    
-    private System.Collections.IEnumerator DisableControllerAfterDeath()
+
+    private IEnumerator DisableControllerAfterDeath()
     {
         yPosition = 0f;
-
         yield return null;
-
-        if (characterController)
-            characterController.detectCollisions = false;
+        if (characterController) characterController.detectCollisions = false;
     }
 
     public void PlayAnimation(string anim)
@@ -364,11 +225,18 @@ public class PlayerController : MonoBehaviour
 
     private void SetStumblePosition()
     {
+        // כשאנחנו במצבי StumbleSide* ומסיימים את הטרנזישן — השומר מתקרב + סאונד
         if ((myAnimator.GetCurrentAnimatorStateInfo(0).IsName("StumbleSideRight") ||
              myAnimator.GetCurrentAnimatorStateInfo(0).IsName("StumbleSideLeft")) &&
             isStumbleTransitionComplete)
         {
+            // השומר מתקרב
             _curDistance = 0.6f;
+
+            // סאונד התקרבות שומר (עם קירור כדי לא להציף)
+            PlayGuardApproachSfx();
+
+            // החזרת השחקן לנתיב הקודם
             UpdatePlayerXPosition(_previousXPos);
             isStumbleTransitionComplete = false;
         }
@@ -388,16 +256,14 @@ public class PlayerController : MonoBehaviour
 
         if (swipeDown && !isJumping && canInput)
         {
-            // mark input BEFORE animation to allow grace window
             rollGraceTimer = actionGrace;
-
             isRolling = true;
             rollTimer = 1f;
             rollGraceTimer = 0.2f;
             SetPlayerAnimator(IdRoll, true);
             characterController.center = new Vector3(0f, 0.2f, 0f);
             characterController.height = 0.4f;
-            audioSource.PlayOneShot(rollClip);
+            if (audioSource && rollClip) audioSource.PlayOneShot(rollClip);
         }
     }
 
@@ -409,11 +275,11 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // תמיד נאפשר קליטת תנועה ימינה ושמאלה, גם באוויר
+        // תנועה ימינה ושמאלה — גם באוויר
         swipeLeft  = Input.GetKeyDown(KeyCode.LeftArrow);
         swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
 
-        // קפיצה ורול – רק אם על הקרקע
+        // קפיצה ורול — רק על הקרקע
         if (isGrounded)
         {
             swipeUp   = Input.GetKeyDown(KeyCode.UpArrow);
@@ -431,6 +297,7 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Left);
                 SetPlayerAnimator(IdDodgeLeft, false);
                 if (guard != null) guard.LeftDodge();
+                PlayDodgeSfx();
             }
             else if (position == Side.Right)
             {
@@ -438,6 +305,7 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Middle);
                 SetPlayerAnimator(IdDodgeLeft, false);
                 if (guard != null) guard.LeftDodge();
+                PlayDodgeSfx();
             }
         }
         else if (swipeRight && !isRolling)
@@ -448,6 +316,7 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Right);
                 SetPlayerAnimator(IdDodgeRight, false);
                 if (guard != null) guard.RightDodge();
+                PlayDodgeSfx();
             }
             else if (position == Side.Left)
             {
@@ -455,8 +324,23 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Middle);
                 SetPlayerAnimator(IdDodgeRight, false);
                 if (guard != null) guard.RightDodge();
+                PlayDodgeSfx();
             }
         }
+    }
+
+    private void PlayDodgeSfx()
+    {
+        if (audioSource != null && dodgeClip != null)
+            audioSource.PlayOneShot(dodgeClip);
+    }
+
+    private void PlayGuardApproachSfx()  // ← חדש
+    {
+        if (!audioSource || !guardApproachClip) return;
+        if (Time.time - _lastGuardApproachTime < guardApproachMinInterval) return;
+        audioSource.PlayOneShot(guardApproachClip);
+        _lastGuardApproachTime = Time.time;
     }
 
     private void UpdatePlayerXPosition(Side plPosition)
@@ -474,7 +358,7 @@ public class PlayerController : MonoBehaviour
 
     public void SetPlayerAnimator(int id, bool isCrossFade, float fadeTime = 0.1f)
     {
-        if (dead) return;          
+        if (dead) return;
         myAnimator.SetLayerWeight(0, 1);
         myAnimator.Play(id);
         ResetCollision();
@@ -508,7 +392,6 @@ public class PlayerController : MonoBehaviour
         characterController.Move(motionVector);
     }
 
-
     private void Jump()
     {
         if (characterController.isGrounded)
@@ -523,32 +406,23 @@ public class PlayerController : MonoBehaviour
                 if (guard != null) guard.Jump();
 
                 jumpGraceTimer = actionGrace;
-
                 isJumping = true;
 
-                // מהירות התחלתית בלבד מושפעת מהנעליים
                 yPosition = isJumpPowerUp ? jumpPowerWithBooster : jumpPower;
 
-                audioSource.PlayOneShot(jumpClip);
+                if (audioSource && jumpClip) audioSource.PlayOneShot(jumpClip);
                 SetPlayerAnimator(IdJump, true, 1f);
                 Debug.Log($"JUMP! booster={isJumpPowerUp}, v0={yPosition}, g={gravity}");
             }
-
-            //else if(!isJumping)
-         //   {
-             //  if(yPosition > -2f) yPosition = -2f;
-            //}
         }
         else
         {
-            // גרביטציה קבועה, לא תלויה ב-jumpPower
             yPosition -= gravity * Time.deltaTime;
-            //if (yPosition < -maxFallSpeed) yPosition = -maxFallSpeed;
             if (characterController.velocity.y <= 0f)
-               SetPlayerAnimator(IdFall, false);
+                SetPlayerAnimator(IdFall, false);
         }
     }
-    
+
     public void PlayFootstepLeft()
     {
         if (audioSource != null)
@@ -561,11 +435,12 @@ public class PlayerController : MonoBehaviour
             audioSource.PlayOneShot(isJumpPowerUp ? boosterFootstepRightClip : footstepRightClip);
     }
 
-    public void CaughtByGuard() 
-    { 
-        if (dead) return; 
-        DeathPlayer("caught1");                // השחקן: caught1
-        if (guard != null) guard.CaughtPlayer(); // השוטר/כלב: catch
-        if (gameManager != null) gameManager.EndGame(); 
-    }  
+    public void CaughtByGuard()
+    {
+        if (dead) return;
+        MagnetCollector.I?.Deactivate();
+        DeathPlayer("caught1");
+        if (guard != null) guard.CaughtPlayer();
+        if (gameManager != null) gameManager.EndGame();
+    }
 }

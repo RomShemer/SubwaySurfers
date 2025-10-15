@@ -152,3 +152,6 @@ MonoBehaviour:
   value: 1
   pickupClip: {fileID: 8300000, guid: 4ef412d2f7a2d411799c24d21dabe1f4, type: 3}
   pickupVfx: {fileID: 0}
+  sfxGroup: {fileID: -7798998069217111173, guid: 1f28450927a314ab0b2bcf01d6bfb7c1, type: 2}
+  spatialBlend: 0.35
+  priority: 80
