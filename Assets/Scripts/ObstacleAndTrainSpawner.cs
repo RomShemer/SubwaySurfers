@@ -45,7 +45,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     [Tooltip("ליירים שמבדקים חפיפה סביב נקודת הנחה (כדי לא לדרוס עצמים קיימים)")]
     public LayerMask overlapMask = ~0;
 
-    [Tooltip("רדיוס הבדיקה לחפיפה")]
+    [Tooltip("רדיוס הבדיקה לחפיפה (בשיטה הישנה – נשאר, ואנחנו גם בודקים קפסולה לאורך כולו)")]
     public float overlapRadius = 0.6f;
 
     [Header("Grounding (optional)")]
@@ -58,7 +58,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     [Tooltip("אם TRUE: בודקים אזור אסור סביב נקודת ההנחה (למנוע הנחה על גגות מנהרות וכו')")]
     public bool checkForbiddenZones = false;
 
-    [Tooltip("ליירים שנחשבים 'אסורים' (אם checkForbiddenZones=TRUE)")]
+    [Tooltip("ליירים שנחשבים 'אסורים' (למשל NoSpawnerZone)")]
     public LayerMask forbiddenMask = 0;
 
     [Tooltip("גובה שממנו נעשה את ה-Raycast כלפי מטה (יחסי ל-Y של ה-Road)")]
@@ -83,7 +83,7 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     [Tooltip("מרחק מינימלי בין שני מכשולים שאינם רכבות (באותה מסילה, בזי)")]
     public float minGapObstacleToObstacle = 10f;
 
-    [Tooltip("מרחק מינימלי מרכבת למכשול שאינו רכבת אחריה (באותה מסילה, בזי)")]
+    [Tooltip("מרחק מינימלי מרכבת/רמפה למכשול שאינו רכבת (באותה מסילה, בזי)")]
     public float minGapTrainToObstacle = 12f;
 
     // ----- בקשות חכמות (למשל ממטבעות) -----
@@ -112,6 +112,39 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
 
     private float _startTime;
 
+    // -------- מודעות אורך + אזורים אסורים לאורך מלא --------
+    [Header("Size-aware placement")]
+    [Tooltip("התחשבות במידות הפריפאב בעת ההצבה ובבדיקות קפסולה")]
+    [SerializeField] bool usePrefabLength = true;
+
+    [Tooltip("אורך ברירת מחדל (במטרים) אם לא ניתן למדוד מהפריפאב")]
+    [SerializeField] float defaultPrefabLengthZ = 5f;
+
+    [Tooltip("מרווח נוסף לרדיוס הקפסולה בבדיקות (מטר)")]
+    [SerializeField] float capsuleExtraRadius = 0.1f;
+
+    // per RoadPiece → per lane → רשימת קטעים [zStart,zEnd] בעולם שכבר תפוסים (לוגית)
+    private readonly Dictionary<RoadPiece, Dictionary<int, List<Vector2>>> _rangesByRoadLane = new();
+
+    // -------- מעקב אחרי קטעי רכבות לכל מסילה --------
+    [Header("Train lanes rule")]
+    [Tooltip("מונע מצב שבו כל המסילות מכוסות ע\"י רכבות באותו מקטע Z")]
+    public bool preventAllLanesCoveredByTrains = true;
+
+    [Tooltip("תגיות שנחשבות 'דמויות־רכבת' (רכבות, רמפות וכו')")]
+    public string[] trainLikeTags = new[] { "Train", "Ramp" };
+
+    [Tooltip("תגיות מכשולים שחייבות לשמור מרחק מקטעי רכבת/רמפה")]
+    public string[] obstacleTagsRequireTrainGap = new[] { "rollAndJumpObstacle", "rollObstacle", "jumpObstacle" };
+
+    // per RoadPiece → per lane → רשימת קטעי רכבת [zStart,zEnd]
+    private readonly Dictionary<RoadPiece, Dictionary<int, List<Vector2>>> _trainRangesByRoadLane = new();
+
+    // Cache למידות פריפאבים
+    private readonly Dictionary<GameObject, float> _prefabLenCache = new();
+    private readonly Dictionary<GameObject, Vector3> _prefabBoundsCache = new();
+
+    // =====================================================================
     private void Awake()
     {
         if (I && I != this) { Destroy(gameObject); return; }
@@ -160,6 +193,12 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     {
         if (road && _occupiedByRoad.ContainsKey(road))
             _occupiedByRoad[road].Clear();
+
+        if (road != null && _rangesByRoadLane.ContainsKey(road))
+            _rangesByRoadLane[road].Clear();
+
+        if (road != null && _trainRangesByRoadLane.ContainsKey(road))
+            _trainRangesByRoadLane[road].Clear();
     }
 
     // ---------- Internals ----------
@@ -243,56 +282,163 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         else                 _lastNonTrainZByLane[laneIndex] = worldZ;
     }
 
-    /// הנחה בפועל (ריווח, כפילות, חפיפה, וגובה – עם/בלי Raycast)
+    // =====================================================================
+    //  TryPlace – מציב בפועל + כללי מרחק מרכבות לרמפות עבור מכשולים מסוימים
+    // =====================================================================
     private bool TryPlace(RoadPiece road, int laneIndex, float laneWorldX, float worldZ, Quaternion laneRot, string kind)
     {
         if (!SpacingAllows(kind, laneIndex, worldZ)) return false;
-
         if (!WorldZToLocalZ(road, worldZ, out float localZ)) return false;
+
         int zBin = Mathf.RoundToInt(localZ / Mathf.Max(0.01f, zBinSize));
         var slot = new Slot(laneIndex, zBin);
-        var set = _occupiedByRoad[road];
+        var set  = _occupiedByRoad[road];
         if (set.Contains(slot)) return false;
 
-        Vector3 worldPoint;
+        // בוחרים פריפאב כדי למדוד מימדים
+        var prefab = PickPrefab(kind);
+        if (!prefab) return false;
 
-        if (snapToGround)
+        float lenZ    = GetPrefabLengthZ(prefab);            // אורך Z
+        float halfLen = lenZ * 0.5f;
+        var boundsXYZ = GetPrefabBoundsSize(prefab);         // רוחב/גובה נומינליים
+        float halfWidthX = Mathf.Max(boundsXYZ.x * 0.5f, overlapRadius);
+        float heightY    = Mathf.Max(boundsXYZ.y, 1.0f);
+
+        // גבולות האריח בעולם
+        if (!TryGetTileZRangeWorld(road, out float zMinW, out float zMaxW)) return false;
+
+        // רק מרכזים שנכנסים עם האורך והריפוד
+        float minCenter = zMinW + edgePaddingZ + halfLen;
+        float maxCenter = zMaxW - edgePaddingZ - halfLen;
+        if (maxCenter < minCenter) return false;
+
+        float clampedCenterZ = Mathf.Clamp(worldZ, minCenter, maxCenter);
+
+        // הטווח שהאובייקט יתפוס במסילה
+        Vector2 seg = new Vector2(clampedCenterZ - halfLen, clampedCenterZ + halfLen);
+
+        // בדיקת חיתוך לוגי מול קטעים קיימים במסילה (באותו RoadPiece)
+        var ranges = GetRangesList(road, laneIndex);
+        for (int i = 0; i < ranges.Count; i++)
+            if (Intersects(seg, ranges[i])) return false;
+
+        // סיווגים
+        bool isTrainLike = IsTrainLikePrefab(prefab) || kind == "train";
+        bool isObstacleThatNeedsTrainGap = NeedsTrainGap(prefab);
+
+        // ---- כלל: מכשולים מסוימים אסור להציב בתוך/קרוב לרכבת/רמפה ----
+        if (isObstacleThatNeedsTrainGap)
         {
-            if (!GetGroundPointWorld(road, laneWorldX, worldZ, out worldPoint))
+            var trainRanges = GetTrainRangesList(road, laneIndex);
+            if (!TrainGapAllows(seg, trainRanges, minGapTrainToObstacle))
+                return false;
+        }
+
+        // ---- כלל קיים: לא לאפשר שכל המסילות מכוסות ע"י רכבות באותו מקטע Z ----
+        if (preventAllLanesCoveredByTrains && isTrainLike)
+        {
+            int lanesCount = GetLaneCount(road);
+            if (WouldFillAllTrainLanes(road, seg, laneIndex, lanesCount))
+                return false;
+        }
+
+        // נקודות קפסולה לאורך האורך (קצה-לקצה) + גובה
+        float yA = GetProbeYAt(road, laneWorldX, seg.x, heightY);
+        float yB = GetProbeYAt(road, laneWorldX, seg.y, heightY);
+        Vector3 pA = new Vector3(laneWorldX, yA, seg.x);
+        Vector3 pB = new Vector3(laneWorldX, yB, seg.y);
+        float capsuleRad = halfWidthX + capsuleExtraRadius;
+
+        // --- אזור אסור לאורך מלא ---
+        if (checkForbiddenZones && forbiddenMask != 0)
+            if (Physics.CheckCapsule(pA, pB, capsuleRad, forbiddenMask, QueryTriggerInteraction.Collide))
                 return false;
 
-            if (checkForbiddenZones && IsInForbiddenArea(worldPoint))
+        // נקודת העמדה (מרכז) + גובה להצבה בפועל
+        Vector3 worldPoint;
+        if (snapToGround)
+        {
+            if (!GetGroundPointWorld(road, laneWorldX, clampedCenterZ, out worldPoint))
                 return false;
         }
         else
         {
-            // בלי Raycast – מניחים על גובה ה-Road
             float y = GetRoadBaseY(road);
-            worldPoint = new Vector3(laneWorldX, y, worldZ);
-            // אם תרצי – אפשר לאפשר forbidden גם כאן:
-            // if (checkForbiddenZones && IsInForbiddenArea(worldPoint)) return false;
+            worldPoint = new Vector3(laneWorldX, y, clampedCenterZ);
         }
 
-        // בדיקת חפיפה פיזית (מול פריטים שכבר הונחו)
+        // --- חפיפה פיזית לאורך מלא מול עצמים קיימים ---
+        if (Physics.CheckCapsule(pA, pB, capsuleRad, overlapMask, QueryTriggerInteraction.Collide))
+            return false;
+
+        // נשאיר גם בדיקת מרכז לשמירה לאחוריות
         if (Physics.CheckSphere(worldPoint + Vector3.up * 0.05f, overlapRadius, overlapMask, QueryTriggerInteraction.Collide))
             return false;
 
-        var prefab = PickPrefab(kind);
-        if (!prefab) return false;
-
+        // יצירה בפועל
         var obj = Instantiate(prefab, road.transform, false);
 
         // world->local (כי ממוקמים כילד של ה-Road)
-        Vector3 local = road.transform.InverseTransformPoint(worldPoint);
-        obj.transform.localPosition = local + Vector3.up * yOffset;
+        Vector3 localPos = road.transform.InverseTransformPoint(worldPoint);
+        obj.transform.localPosition = localPos + Vector3.up * yOffset;
         obj.transform.localRotation = laneRot;
         obj.transform.localScale = Vector3.one;
 
         var rb = obj.GetComponent<Rigidbody>();
         if (rb) { rb.isKinematic = true; rb.interpolation = RigidbodyInterpolation.None; }
 
+        // ספרי תפוסה לוגית + קטע אורך למסילה
         set.Add(slot);
-        RememberPlacement(kind, laneIndex, worldZ);
+        InsertRangeSorted(ranges, seg);
+
+        // אם זו רכבת/רמפה — נשמור גם במפת הרכבות למסילה
+        if (isTrainLike)
+        {
+            var trainRanges = GetTrainRangesList(road, laneIndex);
+            InsertRangeSorted(trainRanges, seg);
+        }
+
+        // ריווח לפי הסוג (קיים מהעבר)
+        RememberPlacement(kind, laneIndex, clampedCenterZ);
+        return true;
+    }
+
+    // ===== עזרי סיווג =====
+    private bool IsTrainLikePrefab(GameObject prefab)
+    {
+        if (!prefab) return false;
+        foreach (var tag in trainLikeTags)
+        {
+            if (!string.IsNullOrEmpty(tag) && prefab.CompareTag(tag)) return true;
+        }
+        return false;
+    }
+
+    private bool NeedsTrainGap(GameObject prefab)
+    {
+        if (!prefab || obstacleTagsRequireTrainGap == null) return false;
+        foreach (var tag in obstacleTagsRequireTrainGap)
+        {
+            if (!string.IsNullOrEmpty(tag) && prefab.CompareTag(tag)) return true;
+        }
+        return false;
+    }
+
+    // דרישת מרחק ממקטעי רכבת/רמפה קיימים: segObstacle מול segTrain מורחב בגודל המרחק
+    private bool TrainGapAllows(Vector2 segObstacle, List<Vector2> trainRanges, float gap)
+    {
+        if (trainRanges == null || trainRanges.Count == 0) return true;
+
+        // נוודא: מכשול צריך להיות לפני תחילת הרכבת - gap, או אחרי סוף הרכבת + gap
+        // נשתמש בהרחבת מקטע הרכבת לשני הצדדים ומניעת חיתוך.
+        for (int i = 0; i < trainRanges.Count; i++)
+        {
+            Vector2 t = trainRanges[i];
+            Vector2 tExpanded = new Vector2(t.x - gap, t.y + gap);
+            if (Intersects(segObstacle, tExpanded))
+                return false;
+        }
         return true;
     }
 
@@ -408,6 +554,10 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
         _occupiedByRoad.Clear();
         _lastNonTrainZByLane.Clear();
         _lastTrainZByLane.Clear();
+
+        _rangesByRoadLane.Clear();
+        _trainRangesByRoadLane.Clear();
+
         RebindPlayer();
     }
 
@@ -421,4 +571,184 @@ public class ObstacleAndTrainSpawner : MonoBehaviour
     }
 
     public void RegisterPlayer(Transform t) { player = t; }
+
+    // --------- Helpers for length/size-aware placement ---------
+    private float GetPrefabLengthZ(GameObject prefab)
+    {
+        if (!usePrefabLength || !prefab) return defaultPrefabLengthZ;
+        if (_prefabLenCache.TryGetValue(prefab, out var len)) return len;
+
+        float best = 0f;
+
+        // Colliders bounds
+        var cols = prefab.GetComponentsInChildren<Collider>(true);
+        foreach (var c in cols) best = Mathf.Max(best, c.bounds.size.z);
+
+        // Renderers bounds
+        if (best <= 0f)
+        {
+            var rends = prefab.GetComponentsInChildren<Renderer>(true);
+            foreach (var r in rends) best = Mathf.Max(best, r.bounds.size.z);
+        }
+
+        // Mesh bounds (local) – כמוצא אחרון
+        if (best <= 0f)
+        {
+            var mfs = prefab.GetComponentsInChildren<MeshFilter>(true);
+            foreach (var mf in mfs) if (mf.sharedMesh) best = Mathf.Max(best, mf.sharedMesh.bounds.size.z);
+        }
+
+        if (best <= 0f) best = defaultPrefabLengthZ;
+        _prefabLenCache[prefab] = best;
+        return best;
+    }
+
+    private Vector3 GetPrefabBoundsSize(GameObject prefab)
+    {
+        if (_prefabBoundsCache.TryGetValue(prefab, out var sz)) return sz;
+
+        Vector3 best = Vector3.zero;
+
+        var cols = prefab.GetComponentsInChildren<Collider>(true);
+        foreach (var c in cols)
+        {
+            var b = c.bounds.size;
+            best = new Vector3(Mathf.Max(best.x, b.x), Mathf.Max(best.y, b.y), Mathf.Max(best.z, b.z));
+        }
+
+        if (best == Vector3.zero)
+        {
+            var rends = prefab.GetComponentsInChildren<Renderer>(true);
+            foreach (var r in rends)
+            {
+                var b = r.bounds.size;
+                best = new Vector3(Mathf.Max(best.x, b.x), Mathf.Max(best.y, b.y), Mathf.Max(best.z, b.z));
+            }
+        }
+
+        if (best == Vector3.zero)
+        {
+            var mfs = prefab.GetComponentsInChildren<MeshFilter>(true);
+            foreach (var mf in mfs)
+            {
+                if (!mf.sharedMesh) continue;
+                var b = mf.sharedMesh.bounds.size;
+                best = new Vector3(Mathf.Max(best.x, b.x), Mathf.Max(best.y, b.y), Mathf.Max(best.z, b.z));
+            }
+        }
+
+        if (best == Vector3.zero) best = new Vector3(overlapRadius * 2f, 1.0f, defaultPrefabLengthZ);
+
+        _prefabBoundsCache[prefab] = best;
+        return best;
+    }
+
+    private Dictionary<int, List<Vector2>> GetLaneRangesMap(RoadPiece road)
+    {
+        if (!_rangesByRoadLane.TryGetValue(road, out var lanes))
+        {
+            lanes = new Dictionary<int, List<Vector2>>();
+            _rangesByRoadLane[road] = lanes;
+        }
+        return lanes;
+    }
+
+    private List<Vector2> GetRangesList(RoadPiece road, int laneIndex)
+    {
+        var lanes = GetLaneRangesMap(road);
+        if (!lanes.TryGetValue(laneIndex, out var list))
+        {
+            list = new List<Vector2>(4);
+            lanes[laneIndex] = list;
+        }
+        return list;
+    }
+
+    // --- Train ranges helpers ---
+    private Dictionary<int, List<Vector2>> GetTrainLaneRangesMap(RoadPiece road)
+    {
+        if (!_trainRangesByRoadLane.TryGetValue(road, out var lanes))
+        {
+            lanes = new Dictionary<int, List<Vector2>>();
+            _trainRangesByRoadLane[road] = lanes;
+        }
+        return lanes;
+    }
+
+    private List<Vector2> GetTrainRangesList(RoadPiece road, int laneIndex)
+    {
+        var lanes = GetTrainLaneRangesMap(road);
+        if (!lanes.TryGetValue(laneIndex, out var list))
+        {
+            list = new List<Vector2>(4);
+            lanes[laneIndex] = list;
+        }
+        return list;
+    }
+
+    private bool WouldFillAllTrainLanes(RoadPiece road, Vector2 newTrainSeg, int placingLane, int laneCount)
+    {
+        // סופרים כמה מסילות יהיו מכוסות ע"י רכבת במקטע הזה אם נציב גם את החדשה
+        int covered = 0;
+        for (int lane = 0; lane < laneCount; lane++)
+        {
+            bool hasTrainHere = false;
+
+            // אם זו המסילה הנוכחית – נספור כאילו כבר הונחה
+            if (lane == placingLane)
+            {
+                hasTrainHere = true;
+            }
+            else
+            {
+                var trenRanges = GetTrainRangesList(road, lane);
+                for (int i = 0; i < trenRanges.Count; i++)
+                {
+                    if (Intersects(newTrainSeg, trenRanges[i]))
+                    {
+                        hasTrainHere = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasTrainHere) covered++;
+        }
+
+        // אם כל המסילות מכוסות – אסור להציב
+        return covered >= laneCount && laneCount > 0;
+    }
+
+    private static bool Intersects(Vector2 a, Vector2 b)
+    {
+        // true אם יש חיתוך/נגיעה בין הקטעים [a.x,a.y] ו-[b.x,b.y]
+        return !(a.y <= b.x || b.y <= a.x);
+    }
+
+    private static void InsertRangeSorted(List<Vector2> list, Vector2 seg)
+    {
+        int i = 0;
+        for (; i < list.Count; i++)
+            if (seg.x < list[i].x) break;
+        list.Insert(i, seg);
+    }
+
+    private float GetProbeYAt(RoadPiece road, float worldX, float worldZ, float objHeight)
+    {
+        float baseY;
+        if (snapToGround)
+        {
+            Vector3 dummy;
+            if (GetGroundPointWorld(road, worldX, worldZ, out dummy))
+                baseY = dummy.y;
+            else
+                baseY = GetRoadBaseY(road);
+        }
+        else
+        {
+            baseY = GetRoadBaseY(road);
+        }
+        // מרכז קפסולה: חצי גובה האובייקט + yOffset קטן כדי לכלול נפח
+        return baseY + (objHeight * 0.5f) + Mathf.Max(0f, yOffset);
+    }
 }

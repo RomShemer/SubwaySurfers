@@ -3238,6 +3238,17 @@ MonoBehaviour:
   spawningEnabled: 0
   minGapObstacleToObstacle: 10
   minGapTrainToObstacle: 12
+  usePrefabLength: 1
+  defaultPrefabLengthZ: 5
+  capsuleExtraRadius: 0.1
+  preventAllLanesCoveredByTrains: 1
+  trainLikeTags:
+  - Train
+  - Ramp
+  obstacleTagsRequireTrainGap:
+  - rollAndJumpObstacle
+  - rollObstacle
+  - jumpObstacle
 --- !u!4 &343991563
 Transform:
   m_ObjectHideFlags: 0

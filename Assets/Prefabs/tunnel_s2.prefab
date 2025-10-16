@@ -218,7 +218,7 @@ MonoBehaviour:
     prefab: {fileID: 5077263830868135568, guid: 32fb70a0531864d559bff36f61392c1c, type: 3}
     weight: 1
     clearRadius: 1
-  chanceThisTile: 0.9
+  chanceThisTile: 0.6
   maxPerTile: 1
   socketsRootName: Sockets
   lanesLocalX:
@@ -422,7 +422,7 @@ MonoBehaviour:
     prefab: {fileID: 5077263830868135568, guid: 32fb70a0531864d559bff36f61392c1c, type: 3}
     weight: 1
     clearRadius: 1
-  chanceThisTile: 0.9
+  chanceThisTile: 0.6
   maxPerTile: 1
   socketsRootName: Sockets
   lanesLocalX:
@@ -706,7 +706,7 @@ Transform:
   m_GameObject: {fileID: 6800886051349811891}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 24.16}
+  m_LocalPosition: {x: 0, y: 0, z: 41.19}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

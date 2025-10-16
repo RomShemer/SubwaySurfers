@@ -7,7 +7,6 @@ TagManager:
   - TrainOn
   - Ramp
   - rollObstacle
-  - junpObstacle
   - Coin
   - magnetInHand
   - rollAndJumpObstacle
@@ -17,6 +16,8 @@ TagManager:
   - boots
   - WallObstacle
   - RampSubTrain
+  - Train
+  - jumpObstacle
   layers:
   - Default
   - TransparentFX

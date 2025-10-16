@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5978280509992855727}
   m_Layer: 3
   m_Name: train_standard
-  m_TagString: TrainOn
+  m_TagString: Train
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -132,7 +132,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_TagString
-      value: TrainOn
+      value: Train
       objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x
