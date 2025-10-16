@@ -17,11 +17,10 @@ The player runs through an infinite subway world, dodging trains, jumping over r
 
 | Action | Key | Description |
 |--------|-----|-------------|
-| 🏃 Move Left | ← | Switch to the left lane |
-| 🏃 Move Right | → | Switch to the right lane |
-| 🦘 Jump | ↑ | Jump over obstacles or onto ramps |
-| 🤸 Roll / Slide | ↓ | Roll under barriers (can also trigger right after a jump) |
-| ⏸️ Pause / Resume | Esc | Pause or resume the game |
+|  Move Left | ← | Switch to the left lane |
+|  Move Right | → | Switch to the right lane |
+|  Jump | ↑ | Jump over obstacles or onto ramps |
+|  Roll / Slide | ↓ | Roll under barriers (can also trigger right after a jump) |
 
   
 🧱 Technical Details
