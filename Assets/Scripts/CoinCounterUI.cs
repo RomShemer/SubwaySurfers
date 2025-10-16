@@ -11,7 +11,6 @@ public class CoinCounterUI : MonoBehaviour
 
     private void OnEnable()
     {
-        // ננסה מיד, ואם הסינגלטון עדיין לא מוכן – נחכה בקורוטינה קצרה
         TrySubscribe();
         if (!_subscribed) StartCoroutine(WaitAndSubscribe());
     }
@@ -24,7 +23,6 @@ public class CoinCounterUI : MonoBehaviour
 
     private IEnumerator WaitAndSubscribe()
     {
-        // מחכה עד שמופיע CoinManager.I (למקרה שסדר האתחול גורם לעיכוב)
         while (CoinManager.I == null)
             yield return null;
 
@@ -40,7 +38,6 @@ public class CoinCounterUI : MonoBehaviour
             _subscribed = true;
         }
 
-        // משיכה חד־פעמית של הערכים הנוכחיים גם אם לא נורה אירוע עדיין
         HandleChanged(CoinManager.I.RunCoins, CoinManager.I.TotalCoins);
     }
 

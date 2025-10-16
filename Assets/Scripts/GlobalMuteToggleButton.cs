@@ -1,4 +1,3 @@
-// GlobalMuteToggleButton.cs
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
@@ -7,8 +6,8 @@ using UnityEngine.Audio;
 public class GlobalMuteToggleButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("Mixer (אופציונלי אבל מומלץ)")]
-    [SerializeField] private AudioMixer mixer;                     // גרור לכאן את GameMixer
-    [SerializeField] private string masterVolumeParam = "MasterVolume"; // חייב להיות בדיוק כמו Exposed Parameter
+    [SerializeField] private AudioMixer mixer;                
+    [SerializeField] private string masterVolumeParam = "MasterVolume";
 
     [Header("UI")]
     [SerializeField] private Image buttonImage;
@@ -23,7 +22,6 @@ public class GlobalMuteToggleButton : MonoBehaviour, IPointerEnterHandler, IPoin
     private bool isHovering = false;
     private bool isMuted = false;
 
-    // -80dB ≈ מושתק, 0dB = פול ווליום
     private const float MutedDb = -80f;
     private const float UnmutedDb = 0f;
 
@@ -31,7 +29,6 @@ public class GlobalMuteToggleButton : MonoBehaviour, IPointerEnterHandler, IPoin
     {
         if (!buttonImage) buttonImage = GetComponent<Image>();
 
-        // טען מצב אחרון מה-PlayerPrefs
         isMuted = PlayerPrefs.GetInt(prefsKey, 0) == 1;
 
         ApplyMuteState();
@@ -50,16 +47,13 @@ public class GlobalMuteToggleButton : MonoBehaviour, IPointerEnterHandler, IPoin
 
     private void ApplyMuteState()
     {
-        // 1) אם יש מיקסר ופרמטר חשוף – נשתמש בו (משתיק הכל שעובר דרך המיקסר)
         if (mixer)
         {
             mixer.SetFloat(masterVolumeParam, isMuted ? MutedDb : UnmutedDb);
         }
 
-        // 2) בנוסף תמיד נשלוט גם ב-AudioListener.volume כדי לתפוס *כל* מקור,
-        //    כולל כאלה שלא מחוברים למיקסר (שחקן/שומר/בוסטרים וכו').
-        AudioListener.pause = false;                 // לא מקפיאים אודיו; רק משתיקים
-        AudioListener.volume = isMuted ? 0f : 1f;    // 0 = מושתק מוחלט, 1 = מלא
+        AudioListener.pause = false;              
+        AudioListener.volume = isMuted ? 0f : 1f;  
     }
 
     private void UpdateIcon()

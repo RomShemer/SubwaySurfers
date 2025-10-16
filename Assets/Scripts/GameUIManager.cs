@@ -33,8 +33,6 @@ public class GameUIManager : MonoBehaviour
     {
         if (Instance && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        // אם את רוצה שה-UI ישרוד בין סצנות:
-        // DontDestroyOnLoad(gameObject);
     }
 
     private void Start()
@@ -52,7 +50,6 @@ public class GameUIManager : MonoBehaviour
             exitButton.onClick.AddListener(OnExitClicked);
         }
 
-        // עוצרים זמן עד START כדי שהקאונטר של ה-GameManager לא יתקדם
         Time.timeScale = 0f;
 
         PrepareForNewRun();
@@ -81,19 +78,6 @@ public class GameUIManager : MonoBehaviour
 
     public void OnStartClicked()
     {
-        /*if (IsInRestartMode())
-        {
-            // ✅ את הריסטארט עושה ה-GameManager
-            Time.timeScale = 1f; // ליתר ביטחון
-            GameManager.Instance?.RestartScene();
-        }
-        else
-        {
-            if (startButton) startButton.gameObject.SetActive(false);
-            if (countdownRoutine != null) StopCoroutine(countdownRoutine);
-            countdownRoutine = StartCoroutine(PlayCountdownAnimation(countdownSeconds));
-        } */
-        
         if (startButton) startButton.gameObject.SetActive(false);
         GameManager.Instance?.ResetStateForRun();
         if (countdownRoutine != null) StopCoroutine(countdownRoutine);

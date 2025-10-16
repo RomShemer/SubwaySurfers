@@ -6,7 +6,7 @@ public class MagnetCollector : MonoBehaviour
     public static MagnetCollector I { get; private set; }
 
     [Header("Who to pull toward")]
-    public Transform target;                // בד"כ ה-Transform של השחקן
+    public Transform target;                // Player Transorm
     [Tooltip("אם הוגדר, המטבעות יימשכו לנקודה הזו (מומלץ: ילד על החזה)")]
     public Transform aimAnchor;
     [Tooltip("אם אין Anchor, נשתמש בהיסט מעלה יחסית לשחקן")]
@@ -83,7 +83,6 @@ public class MagnetCollector : MonoBehaviour
         ExpireNow();
     }
 
-    // תאימות לשם הישן שלך
     public void stopMagnet() => Deactivate();
 
     private void ExpireNow()
@@ -104,7 +103,7 @@ public class MagnetCollector : MonoBehaviour
         _timer = 0f;
     }
 
-    // ---- לוגיקת משיכה ----
+    // ----Pool magnet logic ----
     private Vector3 AimPosition()
     {
         if (aimAnchor) return aimAnchor.position;
@@ -116,14 +115,12 @@ public class MagnetCollector : MonoBehaviour
         aimWorldPos = AimPosition();
         if (!Active || !target) return false;
 
-        // הגבלת רדיוס כללי
         if (limitRadius)
         {
             float sq = (coinWorldPos - aimWorldPos).sqrMagnitude;
             if (sq > maxRadius * maxRadius) return false;
         }
 
-        // מדידת רוחב
         float dx;
         if (lateralAxis == LateralAxis.WorldX)
             dx = Mathf.Abs(coinWorldPos.x - aimWorldPos.x);
@@ -136,7 +133,6 @@ public class MagnetCollector : MonoBehaviour
         bool inBand = dx <= lateralRange;
         if (!useZBand) return inBand;
 
-        // טווח קדימה/אחורה
         Vector3 fwd = target.forward;
         float dz = Vector3.Dot(coinWorldPos - aimWorldPos, fwd);
         return inBand && (dz > -backRange) && (dz <= forwardRange);

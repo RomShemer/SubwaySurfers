@@ -119,7 +119,7 @@ public class InfiniteRoad : MonoBehaviour
         }
 
         if (!_bootstrapped)
-            BuildInitial();      // בנייה ראשונה
+            BuildInitial();   
     }
 
     void Update()
@@ -135,18 +135,15 @@ public class InfiniteRoad : MonoBehaviour
 
         if (!passed) return;
 
-        // מחזירים ישן לפול
         var old = _active.Dequeue();
         ReturnToPool(old);
 
-        // שולפים חדש ומחברים אחרי האחרון
         var picked = PickVariant();
         var next   = GetFromPool(picked.prefab);
         next.SnapAfter(_lastPiece);
         if (activePiecesRoot) next.transform.SetParent(activePiecesRoot, true);
         next.gameObject.SetActive(true);
 
-        // מכשולים/רכבות
         if (!obstacleSpawner && ObstacleAndTrainSpawner.I != null)
             obstacleSpawner = ObstacleAndTrainSpawner.I;
         if (obstacleSpawner != null)
@@ -154,7 +151,6 @@ public class InfiniteRoad : MonoBehaviour
 
         NameSpawnedPiece(next, picked.id);
 
-        // מטבעות
         _spawnedTileCount++;
         if (_spawnedTileCount > skipCoinTiles)
         {
@@ -163,7 +159,6 @@ public class InfiniteRoad : MonoBehaviour
                 coinSpawner.SpawnCoinsOnThisTile();
         }
 
-        // פאווראפים
         if (spawnPowerups && _spawnedTileCount > skipPowerupTiles)
         {
             var pwr = next.GetComponent<RoadPowerupSpawner>();
@@ -176,10 +171,7 @@ public class InfiniteRoad : MonoBehaviour
 
         UpdateRunAndSpacing(picked.id);
     }
-
-    // =========================================================
-    //                  API פומבי – ריבילד מלא
-    // =========================================================
+    
     public void RebuildInitialRoad()
     {
         BuildInitial();
@@ -190,21 +182,15 @@ public class InfiniteRoad : MonoBehaviour
     {
         player = newPlayer;
     }
-
-    // =========================================================
-    //                   אתחול/בנייה פנימיים
-    // =========================================================
+    
     void BuildInitial()
     {
         _bootstrapped = true;
 
-        // איפוס כללי
         ResetRoad();
 
-        // פריהיט לפולים + קאונטרים
         PrewarmPoolsAndInitCounters();
 
-        // בנייה ראשונית
         BuildInitialPieces();
     }
 
@@ -258,7 +244,6 @@ public class InfiniteRoad : MonoBehaviour
 
     void BuildInitialPieces()
     {
-        // עוגן התחלה
         var anchorGo = new GameObject("[RoadStartAnchor]");
         var anchor = anchorGo.transform;
         anchor.SetParent(transform, false);
@@ -280,13 +265,11 @@ public class InfiniteRoad : MonoBehaviour
             piece.gameObject.SetActive(true);
             NameSpawnedPiece(piece, picked.id);
 
-            // מכשולים/רכבות
             if (!obstacleSpawner && ObstacleAndTrainSpawner.I != null)
                 obstacleSpawner = ObstacleAndTrainSpawner.I;
             if (obstacleSpawner != null)
                 obstacleSpawner.SpawnOnRoad(piece);
 
-            // מטבעות
             _spawnedTileCount++;
             if (_spawnedTileCount > skipCoinTiles)
             {
@@ -295,7 +278,6 @@ public class InfiniteRoad : MonoBehaviour
                     coinSpawner.SpawnCoinsOnThisTile();
             }
 
-            // פאווראפים
             if (spawnPowerups && _spawnedTileCount > skipPowerupTiles)
             {
                 var pwr = piece.GetComponent<RoadPowerupSpawner>();
@@ -312,10 +294,7 @@ public class InfiniteRoad : MonoBehaviour
 
         Destroy(anchorGo);
     }
-
-    // =========================================================
-    //                        עזרי בחירה/שמות
-    // =========================================================
+    
     bool IsTunnelId(string id) =>
         !string.Equals(id, "Straight", System.StringComparison.OrdinalIgnoreCase);
 
@@ -419,7 +398,7 @@ public class InfiniteRoad : MonoBehaviour
     }
 
     // =========================================================
-    //                           פול
+    //                           POOL
     // =========================================================
     RoadPiece GetFromPool(RoadPiece prefab)
     {
@@ -435,10 +414,9 @@ public class InfiniteRoad : MonoBehaviour
         {
             inst = Instantiate(prefab);
             if (poolRoot) inst.transform.SetParent(poolRoot, false);
-            _instanceToKey[inst] = prefab; // מיפוי מפתח
+            _instanceToKey[inst] = prefab; 
         }
 
-        // וידוא מיפוי (במידה ומגיע חדש)
         if (!_instanceToKey.ContainsKey(inst))
             _instanceToKey[inst] = prefab;
 
@@ -449,11 +427,9 @@ public class InfiniteRoad : MonoBehaviour
     {
         if (!piece) return;
 
-        // ניקוי מטבעות
         var coinSpawner = piece.GetComponent<RoadCoinSpawner>();
         if (coinSpawner) coinSpawner.ClearCoinsOnThisTile();
 
-        // ניקוי פאווראפים שלא נאספו
         var pwr = piece.GetComponent<RoadPowerupSpawner>();
         if (pwr != null)
         {
@@ -467,17 +443,14 @@ public class InfiniteRoad : MonoBehaviour
             }
         }
 
-        // ניקוי תפוסות ספונר
         if (obstacleSpawner == null && ObstacleAndTrainSpawner.I != null)
             obstacleSpawner = ObstacleAndTrainSpawner.I;
         if (obstacleSpawner != null)
             obstacleSpawner.ClearRoadOccupancy(piece);
 
-        // השבתה
         piece.gameObject.SetActive(false);
         if (poolRoot) piece.transform.SetParent(poolRoot, true);
 
-        // החזרה לפי מפתח בטוח
         if (_instanceToKey.TryGetValue(piece, out var keyPrefab))
         {
             if (!_pools.ContainsKey(keyPrefab))
@@ -486,14 +459,13 @@ public class InfiniteRoad : MonoBehaviour
         }
         else
         {
-            // fallback נדיר – נשים בתור כללי
             if (!_pools.ContainsKey(piece)) _pools[piece] = new Queue<RoadPiece>();
             _pools[piece].Enqueue(piece);
         }
     }
 
     // =========================================================
-    //                        איפוס כללי
+    //                      RESET
     // =========================================================
     public void ResetRoad()
     {

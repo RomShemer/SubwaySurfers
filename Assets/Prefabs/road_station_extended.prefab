@@ -285,7 +285,7 @@ MonoBehaviour:
     prefab: {fileID: 5077263830868135568, guid: 32fb70a0531864d559bff36f61392c1c, type: 3}
     weight: 1
     clearRadius: 1
-  chanceThisTile: 0.1
+  chanceThisTile: 0.3
   maxPerTile: 1
   socketsRootName: Sockets
   lanesLocalX:

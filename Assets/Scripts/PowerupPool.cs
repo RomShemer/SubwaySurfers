@@ -43,7 +43,6 @@ public class PowerupPool : MonoBehaviour
                 maxSize: Mathf.Max(1, e.maxSize)
             );
 
-            // פריהיט
             var temp = new List<GameObject>(e.defaultCapacity);
             for (int i = 0; i < e.defaultCapacity; i++) temp.Add(pool.Get());
             foreach (var go in temp) pool.Release(go);
@@ -56,7 +55,6 @@ public class PowerupPool : MonoBehaviour
     {
         if (!_pools.TryGetValue(prefab, out var pool))
         {
-            // fallback: יצירה חד-פעמית
             var go = Instantiate(prefab, pos, rot, parent);
             return go;
         }
@@ -64,7 +62,6 @@ public class PowerupPool : MonoBehaviour
         var inst = pool.Get();
         if (parent) inst.transform.SetParent(parent, false);
         inst.transform.SetPositionAndRotation(pos, rot);
-        //inst.transform.localScale = Vector3.one;
         if (inst.tag == "boots")
         {
             inst.transform.localScale = prefab.transform.localScale*3;

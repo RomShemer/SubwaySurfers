@@ -98,8 +98,8 @@ public class PlayerController : MonoBehaviour
     private bool isJumpPowerUp = false;
 
     // Queues
-    private bool rollQueued;  // גם לאוויר וגם “רול נוסף מיד אחרי רול”
-    private bool jumpQueued;  // ↑ בזמן רול/אוויר
+    private bool rollQueued;  
+    private bool jumpQueued;  
 
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
@@ -175,10 +175,10 @@ public class PlayerController : MonoBehaviour
         if (jumpGraceTimer > 0f) jumpGraceTimer -= Time.deltaTime;
 
         GetSwipe();
-        SetPlayerPosition(); // מותר גם בזמן רול/אוויר
+        SetPlayerPosition(); //
         MovePlayer();
-        Jump();              // מטפל בתורים + קפיצה רגילה
-        Roll();              // מטפל בריצוף רולים
+        Jump();             
+        Roll();            
 
         _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
         if (guard != null)

@@ -25,14 +25,14 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private string tagRamp         = "Ramp";
     [SerializeField] private string tagRampSubTrain = "RampSubTrain";
     [SerializeField] private string tagMovingTrain  = "TrainOn";
-    [SerializeField] private string tagWallObstacle = "WallObstacle"; // קיר/מחסום מלא שמפיל תמיד
+    [SerializeField] private string tagWallObstacle = "WallObstacle"; 
 
     [Header("Layer filter (solid colliders)")]
     [Tooltip("Only colliders on these layers will be considered obstacles/trains.")]
     [SerializeField] private LayerMask relevantLayers = ~0;
 
     [Header("Hit debounce")]
-    [SerializeField] private float hitCooldown = 0.12f; // מניעת טיפול כפול על אותו קוליידר/פריים
+    [SerializeField] private float hitCooldown = 0.12f; 
     private int   _lastHitId = 0;
     private float _lastHitTime = -999f;
 
@@ -50,12 +50,11 @@ public class PlayerCollision : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool debugLogCollisions = false;
 
-    // ספים לזיהוי צד לפי נורמל/נקודת פגיעה
     [Header("Side detection by surface normal")]
     [Tooltip("כמה ה-X של הנורמל צריך לגבור על Z כדי להיחשב 'פגיעת צד'")]
-    [Range(0f, 1f)] public float sideNormalBias = 0.1f;   // 0.1 = מעט עדיפות
+    [Range(0f, 1f)] public float sideNormalBias = 0.1f;  
     [Tooltip("התעלמות מתקרת/רצפת המנהרה (נורמלים אנכיים מדי)")]
-    [Range(0f, 1f)] public float ignoreIfAbsY = 0.7f;     // אם |normal.y| > 0.7 → לא צד
+    [Range(0f, 1f)] public float ignoreIfAbsY = 0.7f;     
 
     private Animator _anim;
     private bool _catching = false;
@@ -66,14 +65,13 @@ public class PlayerCollision : MonoBehaviour
         _anim = GetComponent<Animator>();
     }
 
-    // נתיב התנגשות מוצקה (CharacterController) — כולל מידע על normal/point
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (hit.collider == null) return;
         OnCharacterCollision(hit.collider, false, hit.normal, hit.point, true);
     }
 
-    // API ציבורי למסלולים אחרים
+    // Public API 
     public void OnCharacterCollision(Collider collider, bool bypassFilters = false)
     {
         OnCharacterCollision(collider, bypassFilters, Vector3.zero, Vector3.zero, false);
@@ -82,9 +80,8 @@ public class PlayerCollision : MonoBehaviour
     private void OnCharacterCollision(Collider collider, bool bypassFilters, Vector3 hitNormal, Vector3 hitPoint, bool hasHit)
     {
         if (!collider) return;
-        if (collider.isTrigger) return; // אם עובדים עם טריגרים – אפשר להוסיף OnTriggerEnter
+        if (collider.isTrigger) return;
 
-        // דיבאונס
         int id = collider.GetInstanceID();
         if (id == _lastHitId && Time.time - _lastHitTime < hitCooldown) return;
         _lastHitId = id; _lastHitTime = Time.time;
@@ -99,18 +96,15 @@ public class PlayerCollision : MonoBehaviour
         if (playerController == null || playerController.MyCharacterController == null)
             return;
 
-        // חלון חסד קצר אחרי סטאמבל צד
         if (Time.time - _lastSideStumbleTime < sideStumbleGrace)
             return;
 
-        // ---- 1) זיהוי פגיעת צד אמיתית לפי נורמל/נקודת פגיעה (עדיף על חפיפת Bounds) ----
         if (hasHit && IsSideHitByNormal(hitNormal, out CollisionX sideByNormal))
         {
             PlaySideStumble(sideByNormal);
-            return; // חשוב: לא להמשיך ל-Tagים כדי לא להפוך את זה ל"מוות"
+            return; 
         }
 
-        // ---- 2) חישוב "איפה פגענו" לפי חפיפת Bounds (פולבק) ----
         _collisionX = GetCollisionX(collider);
         _collisionY = GetCollisionY(collider);
         _collisionZ = GetCollisionZ(collider);
@@ -118,14 +112,13 @@ public class PlayerCollision : MonoBehaviour
         if (debugLogCollisions)
             Debug.Log($"[HIT] name={collider.name} tag={collider.tag} layer={collider.gameObject.layer} trig={collider.isTrigger}  X={_collisionX} Y={_collisionY} Z={_collisionZ}");
 
-        // קדימות: פגיעה צדית → תמיד Stumble Side
+        // Stumble Side
         if (_collisionX == CollisionX.Left || _collisionX == CollisionX.Right)
         {
             PlaySideStumble(_collisionX);
             return;
         }
 
-        // ---- 3) אם לא צד – ניגש לכללי הטאגים ----
         if (IsRelevantTag(collider.tag))
         {
             Debug.Log("collision by tag: " + collider.tag);
@@ -134,7 +127,6 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
-        // ---- 4) ללא טאג → מכשול רגיל ----
         FailByCollision(collider);
     }
 
@@ -155,21 +147,17 @@ public class PlayerCollision : MonoBehaviour
     {
         side = CollisionX.None;
 
-        // מתעלמים מרצפה/תקרה
         if (Mathf.Abs(n.y) > ignoreIfAbsY) return false;
 
-        // אם רכיב ה-X של הנורמל דומיננטי ביחס ל-Z → זו פגיעת צד
         if (Mathf.Abs(n.x) > Mathf.Abs(n.z) + sideNormalBias)
         {
-            // נקבע כיוון: normal מצביע "החוצה" מהקיר; עבור נתיבים סטנדרטיים:
-            // אם normal.x > 0 → קיר משמאל (שדוחף ימינה) → פגענו בצד שמאל
             side = n.x > 0f ? CollisionX.Left : CollisionX.Right;
             return true;
         }
         return false;
     }
 
-    // ===== תפיסה (caught1) =====
+    // =====  (caught1) =====
     private void TriggerCaught(string reason = "")
     {
         if (debugLogCollisions) Debug.Log($"[Collision] TriggerCaught: {reason}");
@@ -194,22 +182,18 @@ public class PlayerCollision : MonoBehaviour
     {
         if (debugLogCollisions) Debug.Log($"[Collision] TriggerCaughtGeneric: {reason}");
 
-        // אנימציית השחקן
         playerController.DeathPlayer("caught1");
 
-        // אנימציית השומר
         if (playerController.guard != null)
         {
             var gAnim = playerController.guard.GetComponent<Animator>();
-            if (gAnim) gAnim.updateMode = AnimatorUpdateMode.UnscaledTime; // שלא ייעצר אם timeScale=0
-            playerController.guard.CaughtPlayer(); // כאן SetTrigger("Caught") + נטרול לוקומושן/Agent
+            if (gAnim) gAnim.updateMode = AnimatorUpdateMode.UnscaledTime; 
+            playerController.guard.CaughtPlayer(); 
         }
 
-        // תני מסגרת + דילי קצר ריאלי כדי שהטריגרים ייכנסו
         yield return null;
         yield return new WaitForSecondsRealtime(0.15f);
 
-        // כעת סיום משחק/עצירת זמן
         playerController.gameManager?.EndGame();
     }
 
@@ -225,7 +209,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (IsGuardClose() && Time.time - _lastNonFatalStumbleTime <= stumbleCatchWindow)
         {
-            playerController.CaughtByGuard(); // כבר מטפל גם באנימציה וגם בסיום משחק
+            playerController.CaughtByGuard(); 
         }
         else
         {
@@ -238,9 +222,8 @@ public class PlayerCollision : MonoBehaviour
     {
         string t = col.tag;
 
-        if (t == tagRamp || t == tagRampSubTrain) return true; // מתעלמים מרמפה
-
-        // בדיקות "קשיחות" (לא חלונות חסד)
+        if (t == tagRamp || t == tagRampSubTrain) return true; //ignore ramp trains
+        
         bool rollingStrict = IsActuallyRollingNowStrict();
         bool jumpingStrict = IsActuallyJumpingNowStrict();
 
@@ -286,7 +269,7 @@ public class PlayerCollision : MonoBehaviour
     {
         if (playerController == null) return;
 
-        // Stumble נמוך
+        // Stumble low
         if (_collisionZ == CollisionZ.Backward && _collisionX == CollisionX.Middle && _collisionY == CollisionY.LowDown)
         {
             collider.enabled = false;
@@ -294,7 +277,7 @@ public class PlayerCollision : MonoBehaviour
             if (!isHandleTag)
             {
                 playerController.SetPlayerAnimator(playerController.IdStumbleLow, false);
-                MaybeCatchAfterRepeatedStumble(); // גם Low Stumble נספר לרצף
+                MaybeCatchAfterRepeatedStumble(); 
             }
             else
             {
@@ -303,7 +286,6 @@ public class PlayerCollision : MonoBehaviour
             return;
         }
 
-        // כל השאר = תפיסה
         TriggerCaught("generic_fail");
     }
 
@@ -332,7 +314,6 @@ public class PlayerCollision : MonoBehaviour
         else if (_collisionZ == CollisionZ.Middle)
         {
             Debug.Log("Z middle and not x middle");
-            // גיבוי — בפועל side כבר תופס קודם
             if (_collisionX == CollisionX.Right)
                 playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
             else if (_collisionX == CollisionX.Left)
@@ -352,7 +333,7 @@ public class PlayerCollision : MonoBehaviour
         }
     }
 
-    // ===== עזרים =====
+    // ===== helpers =====
     private bool IsRelevantTag(string t) =>
         t == tagRollOnly || t == tagJumpOnly || t == tagRollOrJump || t == tagRamp || t ==tagRampSubTrain ||t == tagMovingTrain ||
         (!string.IsNullOrEmpty(tagWallObstacle) && t == tagWallObstacle);
@@ -412,7 +393,6 @@ public class PlayerCollision : MonoBehaviour
                                     return CollisionX.Middle;
     }
 
-    // בדיקות "קשיחות" לאנימציות בפועל
     private bool IsActuallyRollingNowStrict()
     {
         if (_anim)
@@ -433,6 +413,6 @@ public class PlayerCollision : MonoBehaviour
                 return true;
         }
         var cc = playerController.MyCharacterController;
-        return !cc.isGrounded && cc.velocity.y > 0.05f; // תנועה כלפי מעלה
+        return !cc.isGrounded && cc.velocity.y > 0.05f; 
     }
 }

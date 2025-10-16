@@ -14,11 +14,11 @@ public class PoliceChaser : MonoBehaviour
     public float rotateSpeed = 10f;
 
     [Header("Start Placement")]
-    public bool snapToPlayerOnStart = true;          // ❗ להציב ליד השחקן בעת ההפעלה
-    public bool alignToGround = true;                // ליישר לקרקע עם Raycast
-    public LayerMask groundMask = ~0;                // שכבות קרקע (או הגדר ספציפי)
-    public float groundRaycastUp = 2f;               // כמה לגבוה לפני ירי הקרן
-    public float groundRaycastDown = 10f;            // כמה למטה לחפש
+    public bool snapToPlayerOnStart = true;        
+    public bool alignToGround = true;               
+    public LayerMask groundMask = ~0;             
+    public float groundRaycastUp = 2f;               
+    public float groundRaycastDown = 10f;           
 
     [Header("Animation")]
     public string runBoolParam = "IsChasing";
@@ -47,7 +47,6 @@ public class PoliceChaser : MonoBehaviour
 
         transform.position = Vector3.SmoothDamp(transform.position, target, ref _vel, 0.05f, moveSpeed);
 
-        // מסובבים לכיוון השחקן
         var look = player.position - transform.position; look.y = 0f;
         if (look.sqrMagnitude > 0.0001f)
         {
@@ -56,19 +55,16 @@ public class PoliceChaser : MonoBehaviour
         }
     }
 
-    /// מפעיל מרדף
     public void StartChase()
     {
         if (!gameObject.activeSelf) gameObject.SetActive(true);
 
         if (snapToPlayerOnStart && player)
         {
-            // מציבים מייד מאחורי השחקן
             var back   = -player.forward * followDistance;
             var side   =  player.right   * lateralOffset;
             var target = player.position + back + side;
 
-            // יישור לקרקע (אופציונלי)
             if (alignToGround)
             {
                 var rayOrigin = target + Vector3.up * groundRaycastUp;

@@ -1,7 +1,6 @@
-// Coin.cs
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Audio;  // ← חשוב
+using UnityEngine.Audio;  
 
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(Rigidbody))]
@@ -15,7 +14,7 @@ public class Coin : MonoBehaviour
     public ParticleSystem pickupVfx;
 
     [Header("Audio Routing")]
-    public AudioMixerGroup sfxGroup;   // ← גרור לכאן את GameMixer/SFX
+    public AudioMixerGroup sfxGroup;   
     [Range(0,1)] public float spatialBlend = 0.35f;
     [Range(0,256)] public int priority = 80;
 
@@ -31,13 +30,11 @@ public class Coin : MonoBehaviour
         _audio = GetComponent<AudioSource>();
         if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
 
-        // קונפיגורציה וניתוב ל-Mixer/SFX
         _audio.playOnAwake = false;
-        _audio.spatialBlend = spatialBlend; // קצת תלת־מימדי
+        _audio.spatialBlend = spatialBlend; 
         _audio.priority = priority;
-        _audio.outputAudioMixerGroup = sfxGroup;  // ← כאן הקסם
+        _audio.outputAudioMixerGroup = sfxGroup;
 
-        // חשוב ל-CharacterController: טריגר + קינמטי
         _col.isTrigger = true;
         var rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
@@ -79,10 +76,8 @@ public class Coin : MonoBehaviour
 
     void Collect()
     {
-        // 1) מונה
         CoinManager.I?.Add(value);
 
-        // 2) אפקטים
         if (pickupVfx)
         {
             var v = Instantiate(pickupVfx, transform.position, Quaternion.identity);
@@ -91,15 +86,12 @@ public class Coin : MonoBehaviour
         }
         if (pickupClip)
         {
-            // עובר דרך ה-Mixer/SFX כי קישרנו ב-Awake
             _audio.PlayOneShot(pickupClip);
         }
 
-        // 3) כיבוי ויזואלי
         if (_rend) _rend.enabled = false;
         if (_col)  _col.enabled = false;
 
-        // 4) חזרה לפול
         float delay = pickupClip ? pickupClip.length : 0f;
         StartCoroutine(ReturnToPoolAfter(delay));
     }

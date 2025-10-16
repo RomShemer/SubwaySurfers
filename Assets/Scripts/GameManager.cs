@@ -92,7 +92,6 @@ public class GameManager : MonoBehaviour
             isCountdownInProgress = false;
         }
 
-        // גילוי שינוי מצב מבחוץ (למשל כפתור Start)
         if (!_prevCanMove && canMove)
         {
             OnRunStarted();
@@ -129,16 +128,13 @@ public class GameManager : MonoBehaviour
 
         if (shaderController) shaderController.enabled = false;
         _isInputDisabled = true;
-        //canMove = false;
 
         if (playerAnimator)
             playerAnimator.SetBool("isInputDisabled", true);
 
         if (backgroundMusic && backgroundMusic.isPlaying)
             backgroundMusic.Stop();
-
-        //GameUIManager.Instance?.ShowGameOverUI();
-
+        
         Invoke(nameof(ShowGameOverAfterGuardAnimation), 5f);
     }
 
