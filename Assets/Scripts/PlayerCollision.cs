@@ -23,6 +23,7 @@ public class PlayerCollision : MonoBehaviour
     [SerializeField] private string tagJumpOnly     = "jumpObstacle";
     [SerializeField] private string tagRollOrJump   = "rollAndJumpObstacle";
     [SerializeField] private string tagRamp         = "Ramp";
+    [SerializeField] private string tagRampSubTrain = "RampSubTrain";
     [SerializeField] private string tagMovingTrain  = "TrainOn";
     [SerializeField] private string tagWallObstacle = "WallObstacle"; // קיר/מחסום מלא שמפיל תמיד
 
@@ -57,6 +58,7 @@ public class PlayerCollision : MonoBehaviour
     [Range(0f, 1f)] public float ignoreIfAbsY = 0.7f;     // אם |normal.y| > 0.7 → לא צד
 
     private Animator _anim;
+    private bool _catching = false;
 
     private void Awake()
     {
@@ -126,6 +128,7 @@ public class PlayerCollision : MonoBehaviour
         // ---- 3) אם לא צד – ניגש לכללי הטאגים ----
         if (IsRelevantTag(collider.tag))
         {
+            Debug.Log("collision by tag: " + collider.tag);
             if (HandleByTags(collider)) return;
             SetAnimatorByCollision(collider);
             return;
@@ -171,9 +174,43 @@ public class PlayerCollision : MonoBehaviour
     {
         if (debugLogCollisions) Debug.Log($"[Collision] TriggerCaught: {reason}");
         playerController.DeathPlayer("caught1");
-        if (playerController.guard != null) playerController.guard.CaughtPlayer();
+        if (playerController.guard != null)
+        {
+            Debug.Log("before CaughtPlayer");
+            playerController.guard.CaughtPlayer();
+            Debug.Log("After CaughtPlayer");
+        }
         if (playerController.gameManager != null)
             playerController.gameManager.EndGame();
+    }
+    private void TriggerCaughtGeneric(string reason = "")
+    {
+        if (_catching) return; 
+        _catching = true;
+        StartCoroutine(CaughtSequence(reason));
+    }
+
+    private System.Collections.IEnumerator CaughtSequence(string reason)
+    {
+        if (debugLogCollisions) Debug.Log($"[Collision] TriggerCaughtGeneric: {reason}");
+
+        // אנימציית השחקן
+        playerController.DeathPlayer("caught1");
+
+        // אנימציית השומר
+        if (playerController.guard != null)
+        {
+            var gAnim = playerController.guard.GetComponent<Animator>();
+            if (gAnim) gAnim.updateMode = AnimatorUpdateMode.UnscaledTime; // שלא ייעצר אם timeScale=0
+            playerController.guard.CaughtPlayer(); // כאן SetTrigger("Caught") + נטרול לוקומושן/Agent
+        }
+
+        // תני מסגרת + דילי קצר ריאלי כדי שהטריגרים ייכנסו
+        yield return null;
+        yield return new WaitForSecondsRealtime(0.15f);
+
+        // כעת סיום משחק/עצירת זמן
+        playerController.gameManager?.EndGame();
     }
 
     // ===== לוגיקת "תפיסה על סטאמבל חוזר כשהשומר קרוב" =====
@@ -201,7 +238,7 @@ public class PlayerCollision : MonoBehaviour
     {
         string t = col.tag;
 
-        if (t == tagRamp) return true; // מתעלמים מרמפה
+        if (t == tagRamp || t == tagRampSubTrain) return true; // מתעלמים מרמפה
 
         // בדיקות "קשיחות" (לא חלונות חסד)
         bool rollingStrict = IsActuallyRollingNowStrict();
@@ -209,6 +246,8 @@ public class PlayerCollision : MonoBehaviour
 
         if (debugLogCollisions)
             Debug.Log($"[Collision] tag={t} rollStrict={rollingStrict} jumpStrict={jumpingStrict}  looseRoll={GetRollingFlag()} looseJump={GetJumpFlag()}");
+
+        Debug.Log($"[Collision] tag={t} rollStrict={rollingStrict} jumpStrict={jumpingStrict}  looseRoll={GetRollingFlag()} looseJump={GetJumpFlag()}");
 
         if (t == tagRollOnly)
         {
@@ -230,6 +269,7 @@ public class PlayerCollision : MonoBehaviour
 
         if (t == tagMovingTrain)
         {
+            if(jumpingStrict && playerController.IsJumpBooster) return true;
             TriggerCaught("movingTrain"); return true;
         }
 
@@ -274,19 +314,24 @@ public class PlayerCollision : MonoBehaviour
 
         if (_collisionZ == CollisionZ.Backward && _collisionX == CollisionX.Middle)
         {
+            Debug.Log("z backworkd and x middle");
+            
             if (_collisionY == CollisionY.LowDown)
             {
+                Debug.Log("z backworkd and x middle y lowdowm");
                 collider.enabled = false;
                 playerController.SetPlayerAnimator(playerController.IdStumbleLow, false);
                 MaybeCatchAfterRepeatedStumble();
             }
             else
             {
+                Debug.Log("z backworkd and x middle- backwords mid fail");
                 TriggerCaught("backward_mid_fail");
             }
         }
         else if (_collisionZ == CollisionZ.Middle)
         {
+            Debug.Log("Z middle and not x middle");
             // גיבוי — בפועל side כבר תופס קודם
             if (_collisionX == CollisionX.Right)
                 playerController.SetPlayerAnimator(playerController.IdStumbleSideRight, false);
@@ -298,6 +343,8 @@ public class PlayerCollision : MonoBehaviour
         }
         else
         {
+            Debug.Log("Z up");
+
             if (_collisionX == CollisionX.Right)
                 playerController.SetPlayerAnimatorWithLayer(playerController.IdStumbleCornerRight);
             else if (_collisionX == CollisionX.Left)
@@ -307,7 +354,7 @@ public class PlayerCollision : MonoBehaviour
 
     // ===== עזרים =====
     private bool IsRelevantTag(string t) =>
-        t == tagRollOnly || t == tagJumpOnly || t == tagRollOrJump || t == tagRamp || t == tagMovingTrain ||
+        t == tagRollOnly || t == tagJumpOnly || t == tagRollOrJump || t == tagRamp || t ==tagRampSubTrain ||t == tagMovingTrain ||
         (!string.IsNullOrEmpty(tagWallObstacle) && t == tagWallObstacle);
 
     private bool IsOnRelevantLayer(Collider c) =>

@@ -3205,6 +3205,7 @@ MonoBehaviour:
   - {fileID: 2746556581140047594, guid: d80cff290fa8f0f4aa946d62ea37bb02, type: 3}
   - {fileID: 7110311126820307039, guid: cf1f5588a79ac0545b72f0837fd5acf6, type: 3}
   - {fileID: 3231905936153660201, guid: f79eb56f07ccb594bb382c7940ebf975, type: 3}
+  - {fileID: 4439906079223796843, guid: b35e580e43fff43b3ae9bb8b1c340f12, type: 3}
   chanceToSpawnObstacle: 0.4
   chanceToSpawnTrain: 0.3
   yOffset: 0.5
@@ -13448,85 +13449,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1562109855}
   m_CullTransparentMesh: 1
---- !u!1 &1567395783
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1567395786}
-  - component: {fileID: 1567395785}
-  - component: {fileID: 1567395784}
-  m_Layer: 0
-  m_Name: EventSystem
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &1567395784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1567395783}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_SendPointerHoverToParent: 1
-  m_MoveRepeatDelay: 0.5
-  m_MoveRepeatRate: 0.1
-  m_XRTrackingOrigin: {fileID: 0}
-  m_ActionsAsset: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_PointAction: {fileID: -1654692200621890270, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_MoveAction: {fileID: -8784545083839296357, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_SubmitAction: {fileID: 392368643174621059, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_CancelAction: {fileID: 7727032971491509709, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_LeftClickAction: {fileID: 3001919216989983466, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_MiddleClickAction: {fileID: -2185481485913320682, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_RightClickAction: {fileID: -4090225696740746782, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_ScrollWheelAction: {fileID: 6240969308177333660, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_TrackedDevicePositionAction: {fileID: 6564999863303420839, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_TrackedDeviceOrientationAction: {fileID: 7970375526676320489, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
-  m_DeselectOnBackgroundClick: 1
-  m_PointerBehavior: 0
-  m_CursorLockBehavior: 0
-  m_ScrollDeltaPerTick: 6
---- !u!114 &1567395785
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1567395783}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_FirstSelected: {fileID: 0}
-  m_sendNavigationEvents: 1
-  m_DragThreshold: 10
---- !u!4 &1567395786
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1567395783}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1569175092
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18358,6 +18280,7 @@ MonoBehaviour:
   tagJumpOnly: jumpObstacle
   tagRollOrJump: rollAndJumpObstacle
   tagRamp: Ramp
+  tagRampSubTrain: RampSubTrain
   tagMovingTrain: TrainOn
   tagWallObstacle: WallObstacle
   relevantLayers:
@@ -18367,7 +18290,7 @@ MonoBehaviour:
   sideStumbleGrace: 0.25
   guardCatchDistance: 1.25
   stumbleCatchWindow: 0.75
-  debugLogCollisions: 0
+  debugLogCollisions: 1
   sideNormalBias: 0.1
   ignoreIfAbsY: 0.7
 --- !u!4 &8444832577642346656 stripped
@@ -18561,6 +18484,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 69609694471540134, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
+      propertyPath: m_StepOffset
+      value: 0.2
+      objectReference: {fileID: 0}
     - target: {fileID: 69609694471540135, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: m_WarningMessage
       value: "\nBinding warning: Some generic clip(s) animate transforms that are
@@ -18668,7 +18595,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: jumpPower
-      value: 12
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: audioSource
@@ -18704,7 +18631,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: jumpPowerWithBooster
-      value: 14
+      value: 12
       objectReference: {fileID: 0}
     - target: {fileID: 8200004027163981748, guid: 9e0236778cea95145b5ce269d9c34638, type: 3}
       propertyPath: boosterFootstepLeftClip
@@ -18904,7 +18831,6 @@ SceneRoots:
   - {fileID: 6016893322029693097}
   - {fileID: 7037535132740953584}
   - {fileID: 432394276}
-  - {fileID: 1567395786}
   - {fileID: 789177567}
   - {fileID: 1364233907}
   - {fileID: 399183574}

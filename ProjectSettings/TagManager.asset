@@ -16,6 +16,7 @@ TagManager:
   - rightJumpBooster
   - boots
   - WallObstacle
+  - RampSubTrain
   layers:
   - Default
   - TransparentFX

@@ -173,6 +173,12 @@ public class GameManager : MonoBehaviour
 
         if (!infiniteRoad)
             infiniteRoad = FindObjectOfType<InfiniteRoad>(includeInactive: true);
+        
+        if (!guardController)
+        {
+            var guard = GameObject.Find("Guard");
+            if (guard) guardController = guard.GetComponent<FollowGuard>();
+        }
 
         if (!backgroundMusic)
         {
