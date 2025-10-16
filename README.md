@@ -1,5 +1,6 @@
 Subway Surfers Clone for PC (Unity 3D)
 
+🧩 **Active branch:** `main`  
 A 3D endless-runner game built in Unity, inspired by Subway Surfers.
 The player runs through an infinite subway world, dodging trains, jumping over ramps, rolling under obstacles, and collecting coins — all while being chased by a guard and his dog.
 
@@ -36,7 +37,7 @@ The player runs through an infinite subway world, dodging trains, jumping over r
 
 
 🚀 How to Run
-	1.	Open the project in Unity Hub.
-	2.	Load the scene: SubwaySurfers.unity
-	3.	Press Play to start the game
+1. Open the project in Unity Hub.
+2. Load the scene: SubwaySurfers.unity
+3.	Press Play to start the game
 
