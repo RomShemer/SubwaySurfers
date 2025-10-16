@@ -20,7 +20,6 @@ public class RoadPiece : MonoBehaviour
         }
     }
 
-    /// מצמיד את ה-startAnchor שלי למיקום+סיבוב של target
     public void SnapStartTo(Transform target)
     {
         if (!target) return;
@@ -41,7 +40,6 @@ public class RoadPiece : MonoBehaviour
         }
     }
 
-    /// מצמיד אותי מיד אחרי מקטע קודם (start שלי על end שלו)
     public void SnapAfter(RoadPiece previous)
     {
         if (previous && previous.endAnchor)

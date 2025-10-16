@@ -5,7 +5,7 @@ public class jumpBoosterPickUp : MonoBehaviour
     public float duration = 7f;
 
     [Header("Pool binding")]
-    public GameObject prefabKey; // שייכי באינספקטור לאיזה פריפאב שייך הפאווראפ הזה
+    public GameObject prefabKey; 
 
     [Header("Optional FX")]
     public AudioClip pickupSfx;
@@ -20,7 +20,6 @@ public class jumpBoosterPickUp : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        // מציאת המנהל על השחקן/ילדיו
         var collector = other.GetComponentInChildren<jumpBoosterCollector>();
         if (!collector) collector = jumpBoosterCollector.I;
 
@@ -29,7 +28,6 @@ public class jumpBoosterPickUp : MonoBehaviour
             
             collector.Activate(duration);
 
-            // אפקטים (אופציונלי)
             if (pickupVfx)
             {
                 var v = Instantiate(pickupVfx, transform.position, Quaternion.identity);

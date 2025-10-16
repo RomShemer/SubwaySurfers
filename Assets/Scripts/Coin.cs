@@ -1,6 +1,6 @@
-// Coin.cs
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Audio;  
 
 [RequireComponent(typeof(Collider))]
 [RequireComponent(typeof(Rigidbody))]
@@ -13,6 +13,11 @@ public class Coin : MonoBehaviour
     public AudioClip pickupClip;
     public ParticleSystem pickupVfx;
 
+    [Header("Audio Routing")]
+    public AudioMixerGroup sfxGroup;   
+    [Range(0,1)] public float spatialBlend = 0.35f;
+    [Range(0,256)] public int priority = 80;
+
     bool _collected;
     Collider _col;
     Renderer _rend;
@@ -23,20 +28,24 @@ public class Coin : MonoBehaviour
         _col = GetComponent<Collider>();
         _rend = GetComponentInChildren<Renderer>();
         _audio = GetComponent<AudioSource>();
+        if (_audio == null) _audio = gameObject.AddComponent<AudioSource>();
 
-        // חשוב ל-CharacterController: טריגר + קינמטי
+        _audio.playOnAwake = false;
+        _audio.spatialBlend = spatialBlend; 
+        _audio.priority = priority;
+        _audio.outputAudioMixerGroup = sfxGroup;
+
         _col.isTrigger = true;
         var rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
         rb.useGravity = false;
     }
-    
+
     void Update()
     {
         var mc = MagnetCollector.I;
         if (mc != null && mc.Active && mc.ShouldAttract(transform.position, out Vector3 aim))
         {
-            // יעד רך: מתקרבים ב-XZ מהר, את ה-Y מרימים בעדינות
             float targetY = mc.aimAnchor ? mc.aimAnchor.position.y : aim.y;
             float newY = Mathf.MoveTowards(transform.position.y, targetY, 5f * Time.deltaTime);
             Vector3 softAim = new Vector3(aim.x, newY, aim.z);
@@ -49,7 +58,6 @@ public class Coin : MonoBehaviour
         }
     }
 
-    
     public void ResetForReuse()
     {
         _collected = false;
@@ -68,10 +76,8 @@ public class Coin : MonoBehaviour
 
     void Collect()
     {
-        // 1) עדכון מונה
         CoinManager.I?.Add(value);
 
-        // 2) אפקטים
         if (pickupVfx)
         {
             var v = Instantiate(pickupVfx, transform.position, Quaternion.identity);
@@ -80,15 +86,12 @@ public class Coin : MonoBehaviour
         }
         if (pickupClip)
         {
-            if (!_audio) _audio = gameObject.AddComponent<AudioSource>();
             _audio.PlayOneShot(pickupClip);
         }
 
-        // 3) כיבוי ויזואלי מיידי
         if (_rend) _rend.enabled = false;
         if (_col)  _col.enabled = false;
 
-        // 4) החזרה לפול אחרי סאונד (או מיידית אם אין)
         float delay = pickupClip ? pickupClip.length : 0f;
         StartCoroutine(ReturnToPoolAfter(delay));
     }

@@ -142,7 +142,13 @@ AnimatorController:
   m_PrefabAsset: {fileID: 0}
   m_Name: Guard
   serializedVersion: 5
-  m_AnimatorParameters: []
+  m_AnimatorParameters:
+  - m_Name: isInputDisabled
+    m_Type: 4
+    m_DefaultFloat: 0
+    m_DefaultInt: 0
+    m_DefaultBool: 0
+    m_Controller: {fileID: 9100000}
   m_AnimatorLayers:
   - serializedVersion: 5
     m_Name: Base Layer
@@ -215,7 +221,7 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 7706058389297505471}
-    m_Position: {x: 270, y: -90, z: 0}
+    m_Position: {x: 310, y: -110, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 7642386273027864414}
     m_Position: {x: 310, y: 70, z: 0}
@@ -270,7 +276,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -2759055857898844706, guid: 4dc328bfd9dec824c98fd2ca41dd4d03, type: 3}
+  m_Motion: {fileID: 7400000, guid: 1808693208d9c45a49e7bf1387647084, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -340,7 +346,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: -7213587145172450309, guid: 4dc328bfd9dec824c98fd2ca41dd4d03, type: 3}
+  m_Motion: {fileID: 7400000, guid: c800c04e52f344f58ade9c968d8bd486, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 
@@ -366,7 +372,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 8517986034588264536, guid: 4dc328bfd9dec824c98fd2ca41dd4d03, type: 3}
+  m_Motion: {fileID: 7400000, guid: e401da109a541482ab1023cab55853a5, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

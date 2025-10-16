@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7462030199006175460}
   m_Layer: 3
   m_Name: train_cargo_5
-  m_TagString: Untagged
+  m_TagString: Train
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,6 +126,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: top (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_TagString
+      value: Train
+      objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -187,6 +191,10 @@ PrefabInstance:
     - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_Name
       value: top (4)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_TagString
+      value: Train
       objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x
@@ -250,6 +258,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: top (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_TagString
+      value: Train
+      objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -312,6 +324,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: top
       objectReference: {fileID: 0}
+    - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_TagString
+      value: Train
+      objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -373,6 +389,10 @@ PrefabInstance:
     - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_Name
       value: top (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_TagString
+      value: Train
       objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x

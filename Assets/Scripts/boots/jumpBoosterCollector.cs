@@ -17,7 +17,6 @@ public class jumpBoosterCollector : MonoBehaviour
 
     public bool Active => _timer > 0f;
 
-    // אופציונלי: אירועים למי שרוצה להאזין (UI, סאונד)
     public System.Action OnActivated;
     public System.Action OnExpired;
 
@@ -37,11 +36,9 @@ public class jumpBoosterCollector : MonoBehaviour
         }
     }
 
-    /// הפעלה/רענון משך הנעליים
     public void Activate(float seconds = -1f)
     {
         float add = (seconds > 0f ? seconds : defaultDuration);
-        // הארכת משך אם כבר פועל, או התחלה אם כבוי
         bool wasActive = Active;
         _timer = Mathf.Max(_timer, 0f) + (wasActive ? add : add);
 
@@ -53,7 +50,6 @@ public class jumpBoosterCollector : MonoBehaviour
                 player.IsJumpBooster = true;
             }
             
-            // הדלקת ויזואל/אנימציה
             if (leftBootsVisual) leftBootsVisual.SetActive(true);
             if (rightBootsVisual) rightBootsVisual.SetActive(true);
             
@@ -61,7 +57,6 @@ public class jumpBoosterCollector : MonoBehaviour
         }
     }
 
-    /// כיבוי ידני/אוטומטי בסוף הזמן
     public void Expire()
     {
         _timer = 0f;

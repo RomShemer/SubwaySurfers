@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 421795620868945731}
   m_Layer: 3
   m_Name: blocker_jump
-  m_TagString: junpObstacle
+  m_TagString: jumpObstacle
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -106,5 +106,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.8825022, y: 1.5, z: 1.56064}
-  m_Center: {x: -0.00009202957, y: 0.64, z: -0.0010643005}
+  m_Size: {x: 1.8825022, y: 1.18, z: 1.56064}
+  m_Center: {x: -0.00009202957, y: 0.59, z: -0.0010643005}

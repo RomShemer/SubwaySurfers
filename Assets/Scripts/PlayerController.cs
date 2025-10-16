@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -34,11 +35,10 @@ public class PlayerController : MonoBehaviour
     public bool IsStumbleTransitionComplete { get => isStumbleTransitionComplete; set => isStumbleTransitionComplete = value; }
 
     [Header("Action windows")]
-    [SerializeField] private float actionGrace = 0.15f;   // short forgiveness window
+    [SerializeField] private float actionGrace = 0.15f;
     private float rollGraceTimer;
     private float jumpGraceTimer;
 
-    // Public flags used by collision logic
     public bool IsRollingNow => isRolling || rollGraceTimer > 0f;
     public bool IsAirborneOrJumping =>
         !characterController.isGrounded ||
@@ -54,11 +54,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float jumpPower = 12f;
     [SerializeField] private float jumpPowerWithBooster = 15f;
     [SerializeField] private float dodgeSpeed = 6f;
-    
+
     [Header("Jump tuning")]
     [SerializeField] private float airForwardMultiplier = 0.65f;
-    [SerializeField] private float airForwardMultiplierWithBooster = 0.65f; 
-    [SerializeField] private float gravity = 20f; 
+    [SerializeField] private float airForwardMultiplierWithBooster = 0.65f;
+    [SerializeField] private float gravity = 20f;
 
     private float rollTimer;
     private float newXPosition;
@@ -90,13 +90,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isRolling;
     [SerializeField] private bool isJumping;
     [SerializeField] private bool isGrounded;
-    [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")] 
+    [SerializeField, FormerlySerializedAs("_isStumbleTransitionComplete")]
     private bool isStumbleTransitionComplete = false;
 
     [SerializeField] private float maxFallSpeed = 25f;
 
     private bool isJumpPowerUp = false;
-    
+
+    // Queues
+    private bool rollQueued;  
+    private bool jumpQueued;  
+
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip jumpClip;
@@ -105,7 +109,18 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private AudioClip footstepRightClip;
     [SerializeField] private AudioClip boosterFootstepLeftClip;
     [SerializeField] private AudioClip boosterFootstepRightClip;
-    
+    [SerializeField] private AudioClip dieSound;
+    [SerializeField] private AudioClip guardStartSound;
+
+    [Header("SFX: Lane Change")]
+    [SerializeField] private AudioClip dodgeClip;
+
+    [Header("SFX: Guard Approaches on Side Stumble")]
+    [SerializeField] private AudioClip guardApproachClip;
+    [SerializeField] private float guardApproachMinInterval = 0.35f;
+
+    private float _lastGuardApproachTime = -999f;
+
     // Guard
     public FollowGuard guard;
     private float _curDistance = 0.6f;
@@ -125,10 +140,9 @@ public class PlayerController : MonoBehaviour
         myAnimator = GetComponent<Animator>();
         characterController = GetComponent<CharacterController>();
         playerCollision = GetComponent<PlayerCollision>();
-        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        gameManager = GameObject.Find("GameManager")?.GetComponent<GameManager>();
         yPosition = -7f;
         if (!audioSource) audioSource = GetComponent<AudioSource>();
-
     }
 
     void Update()
@@ -137,7 +151,6 @@ public class PlayerController : MonoBehaviour
         {
             canInput = false;
 
-            // מקרב את השומר
             _curDistance = Mathf.MoveTowards(_curDistance, 0f, Time.deltaTime * 5f);
             if (guard != null)
             {
@@ -146,19 +159,14 @@ public class PlayerController : MonoBehaviour
 
                 if (!playedCaughtOnce)
                 {
-                    // אנימציית תפיסה של השחקן פעם אחת
                     SafePlayAnimation(caughtAnimName);
-                    // אנימציית תפיסה של השומר/כלב (אם מימשת ב-FollowGuard)
                     if (guard != null) guard.CaughtPlayer();
-
                     playedCaughtOnce = true;
-                    // אם תרצה: Invoke("FinishAfterCatch", 1f); // לסגור משחק אחרי שנייה
                     if (gameManager != null)
-                    gameManager.EndGame();
+                        gameManager.EndGame();
                 }
             }
-
-            return; // לא מריצים לוגיקה רגילה
+            return;
         }
 
         if (!gameManager.CanMove || gameManager.IsInputDisabled) return;
@@ -167,10 +175,10 @@ public class PlayerController : MonoBehaviour
         if (jumpGraceTimer > 0f) jumpGraceTimer -= Time.deltaTime;
 
         GetSwipe();
-        SetPlayerPosition();
-        Jump();
-        Roll();
+        SetPlayerPosition(); //
         MovePlayer();
+        Jump();             
+        Roll();            
 
         _curDistance = Mathf.MoveTowards(_curDistance, 5f, Time.deltaTime * 0.5f);
         if (guard != null)
@@ -183,17 +191,28 @@ public class PlayerController : MonoBehaviour
         SetStumblePosition();
     }
 
-    // אם תרצה לסגור משחק אחרי תפיסה:
-    // private void FinishAfterCatch() { if (gameManager != null) gameManager.EndGame(); }
+    private void FinishAfterCatch() { if (gameManager != null) gameManager.EndGame(); }
 
     public void DeathPlayer(string anim)
     {
         if (dead) return;
         dead = true;
         canInput = false;
-
+        MagnetCollector.I?.Deactivate();
         myAnimator.SetLayerWeight(1, 0f);
-        SafePlayAnimation(anim); // אצלך זה "caught1"
+        SafePlayAnimation(anim);
+    }
+
+    public void PlayDiePlayerAudio()
+    {
+        if (audioSource) audioSource.PlayOneShot(dieSound);
+    }
+
+    private IEnumerator DisableControllerAfterDeath()
+    {
+        yPosition = 0f;
+        yield return null;
+        if (characterController) characterController.detectCollisions = false;
     }
 
     public void PlayAnimation(string anim)
@@ -215,59 +234,62 @@ public class PlayerController : MonoBehaviour
             isStumbleTransitionComplete)
         {
             _curDistance = 0.6f;
+            PlayGuardApproachSfx();
             UpdatePlayerXPosition(_previousXPos);
             isStumbleTransitionComplete = false;
         }
     }
 
-    private void Roll()
-    {
-        rollTimer -= Time.deltaTime;
-
-        if (rollTimer <= 0f)
-        {
-            isRolling = false;
-            rollTimer = 0f;
-            characterController.center = new Vector3(0f, 0.45f, 0f);
-            characterController.height = 0.9f;
-        }
-
-        if (swipeDown && !isJumping && canInput)
-        {
-            // mark input BEFORE animation to allow grace window
-            rollGraceTimer = actionGrace;
-
-            isRolling = true;
-            rollTimer = 1f;
-            rollGraceTimer = 0.2f;
-            SetPlayerAnimator(IdRoll, true);
-            characterController.center = new Vector3(0f, 0.2f, 0f);
-            characterController.height = 0.4f;
-            audioSource.PlayOneShot(rollClip);
-        }
-    }
-
+    // ====== INPUT ======
     private void GetSwipe()
     {
-        if (!canInput) { swipeLeft = swipeRight = swipeDown = swipeUp = false; return; }
+        if (!canInput)
+        {
+            swipeLeft = swipeRight = swipeDown = swipeUp = false;
+            return;
+        }
 
-        if (isGrounded)
+        // ימינה/שמאלה – מותר גם בזמן רול/באוויר
+        swipeLeft  = Input.GetKeyDown(KeyCode.LeftArrow);
+        swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
+
+        // ↑ – אם אפשר עכשיו קפיצה, נעשה; אחרת נזכור לתור
+        if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            swipeLeft  = Input.GetKeyDown(KeyCode.LeftArrow);
-            swipeRight = Input.GetKeyDown(KeyCode.RightArrow);
-            swipeDown  = Input.GetKeyDown(KeyCode.DownArrow);
-            swipeUp    = Input.GetKeyDown(KeyCode.UpArrow);
+            if (characterController.isGrounded && !isRolling)
+                swipeUp = true;
+            else
+                jumpQueued = true;
         }
-        else
+        else swipeUp = false;
+
+        // ↓ – תמיכה בריצוף רולים:
+        // אם כרגע ברול → נכניס לתור רול נוסף;
+        // אחרת: אם על הקרקע ולא ברול → רול מיידי; אם באוויר → לתור לנחיתה.
+        if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            // allow mid-air roll if you want: uncomment next line
-            // swipeDown = swipeDown || Input.GetKeyDown(KeyCode.DownArrow);
+            if (isRolling)
+            {
+                rollQueued = true;
+                swipeDown = false;
+            }
+            else if (characterController.isGrounded)
+            {
+                swipeDown = true;
+            }
+            else
+            {
+                rollQueued = true;
+                swipeDown = false;
+            }
         }
+        else swipeDown = false;
     }
 
+    // ====== LANE CHANGE ======
     private void SetPlayerPosition()
     {
-        if (swipeLeft && !isRolling)
+        if (swipeLeft)
         {
             if (position == Side.Middle)
             {
@@ -275,6 +297,7 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Left);
                 SetPlayerAnimator(IdDodgeLeft, false);
                 if (guard != null) guard.LeftDodge();
+                PlayDodgeSfx();
             }
             else if (position == Side.Right)
             {
@@ -282,9 +305,10 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Middle);
                 SetPlayerAnimator(IdDodgeLeft, false);
                 if (guard != null) guard.LeftDodge();
+                PlayDodgeSfx();
             }
         }
-        else if (swipeRight && !isRolling)
+        else if (swipeRight)
         {
             if (position == Side.Middle)
             {
@@ -292,6 +316,7 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Right);
                 SetPlayerAnimator(IdDodgeRight, false);
                 if (guard != null) guard.RightDodge();
+                PlayDodgeSfx();
             }
             else if (position == Side.Left)
             {
@@ -299,8 +324,23 @@ public class PlayerController : MonoBehaviour
                 UpdatePlayerXPosition(Side.Middle);
                 SetPlayerAnimator(IdDodgeRight, false);
                 if (guard != null) guard.RightDodge();
+                PlayDodgeSfx();
             }
         }
+    }
+
+    private void PlayDodgeSfx()
+    {
+        if (audioSource != null && dodgeClip != null)
+            audioSource.PlayOneShot(dodgeClip);
+    }
+
+    private void PlayGuardApproachSfx()
+    {
+        if (!audioSource || !guardApproachClip) return;
+        if (Time.time - _lastGuardApproachTime < guardApproachMinInterval) return;
+        audioSource.PlayOneShot(guardApproachClip);
+        _lastGuardApproachTime = Time.time;
     }
 
     private void UpdatePlayerXPosition(Side plPosition)
@@ -318,6 +358,7 @@ public class PlayerController : MonoBehaviour
 
     public void SetPlayerAnimator(int id, bool isCrossFade, float fadeTime = 0.1f)
     {
+        if (dead) return;
         myAnimator.SetLayerWeight(0, 1);
         myAnimator.Play(id);
         ResetCollision();
@@ -334,6 +375,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // ====== LOCOMOTION ======
     private void MovePlayer()
     {
         float airMul = characterController.isGrounded
@@ -351,47 +393,108 @@ public class PlayerController : MonoBehaviour
         characterController.Move(motionVector);
     }
 
-
+    // ====== JUMP / FALL + QUEUES ======
     private void Jump()
     {
+        // קפיצה מושהית – ברגע שאפשר
+        if (jumpQueued && canInput && characterController.isGrounded && !isRolling)
+        {
+            jumpQueued = false;
+            DoJump();
+            return;
+        }
+
         if (characterController.isGrounded)
         {
             isJumping = false;
 
+            // גלגול מושהה (מאוויר או מרצף רולים) – מיד כשנוחתים/כשנגמר רול קודם
+            if (rollQueued && canInput && !isRolling)
+            {
+                rollQueued = false;
+                StartRoll();
+                return;
+            }
+
             if (myAnimator.GetCurrentAnimatorStateInfo(0).IsName("Fall"))
                 SetPlayerAnimator(IdLanding, false);
 
+            // קפיצה מיידית
             if (swipeUp && !isRolling && !dead && canInput)
             {
-                if (guard != null) guard.Jump();
-
-                jumpGraceTimer = actionGrace;
-
-                isJumping = true;
-
-                // מהירות התחלתית בלבד מושפעת מהנעליים
-                yPosition = isJumpPowerUp ? jumpPowerWithBooster : jumpPower;
-
-                audioSource.PlayOneShot(jumpClip);
-                SetPlayerAnimator(IdJump, true, 1f);
-                Debug.Log($"JUMP! booster={isJumpPowerUp}, v0={yPosition}, g={gravity}");
+                DoJump();
             }
-
-            //else if(!isJumping)
-         //   {
-             //  if(yPosition > -2f) yPosition = -2f;
-            //}
         }
         else
         {
-            // גרביטציה קבועה, לא תלויה ב-jumpPower
             yPosition -= gravity * Time.deltaTime;
-            //if (yPosition < -maxFallSpeed) yPosition = -maxFallSpeed;
             if (characterController.velocity.y <= 0f)
-               SetPlayerAnimator(IdFall, false);
+                SetPlayerAnimator(IdFall, false);
         }
     }
-    
+
+    private void DoJump()
+    {
+        if (guard != null) guard.Jump();
+        jumpGraceTimer = actionGrace;
+        isJumping = true;
+        yPosition = isJumpPowerUp ? jumpPowerWithBooster : jumpPower;
+        if (audioSource && jumpClip) audioSource.PlayOneShot(jumpClip);
+        SetPlayerAnimator(IdJump, true, 1f);
+        Debug.Log($"JUMP! booster={isJumpPowerUp}, v0={yPosition}, g={gravity}");
+    }
+
+    // ====== ROLL + QUEUE (כולל ריצוף) ======
+    private void Roll()
+    {
+        // סיום רול
+        rollTimer -= Time.deltaTime;
+        if (rollTimer <= 0f && isRolling)
+        {
+            isRolling = false;
+            rollTimer = 0f;
+            characterController.center = new Vector3(0f, 0.45f, 0f);
+            characterController.height = 0.9f;
+
+            // אם חיכינו לרול נוסף (נלחץ ↓ במהלך הרול) – ונוכל עכשיו, התחל מייד
+            if (rollQueued && canInput && characterController.isGrounded)
+            {
+                rollQueued = false;
+                StartRoll();
+                return;
+            }
+        }
+
+        // התחלת רול מיידית (אם ↓ נלחץ על הקרקע כשלא ברול)
+        if (swipeDown && canInput && characterController.isGrounded && !isRolling)
+        {
+            StartRoll();
+        }
+    }
+
+    private void StartRoll()
+    {
+        rollGraceTimer = actionGrace;
+        isRolling = true;
+        rollTimer = 1f;
+        rollGraceTimer = 0.2f;
+
+        SetPlayerAnimator(IdRoll, true);
+        characterController.center = new Vector3(0f, 0.2f, 0f);
+        characterController.height = 0.4f;
+
+        if (audioSource && rollClip) audioSource.PlayOneShot(rollClip);
+    }
+
+    private void CancelRoll()
+    {
+        if (!isRolling) return;
+        isRolling = false;
+        rollTimer = 0f;
+        characterController.center = new Vector3(0f, 0.45f, 0f);
+        characterController.height = 0.9f;
+    }
+
     public void PlayFootstepLeft()
     {
         if (audioSource != null)
@@ -402,5 +505,14 @@ public class PlayerController : MonoBehaviour
     {
         if (audioSource != null)
             audioSource.PlayOneShot(isJumpPowerUp ? boosterFootstepRightClip : footstepRightClip);
+    }
+
+    public void CaughtByGuard()
+    {
+        if (dead) return;
+        MagnetCollector.I?.Deactivate();
+        DeathPlayer("caught1");
+        if (guard != null) guard.CaughtPlayer();
+        if (gameManager != null) gameManager.EndGame();
     }
 }

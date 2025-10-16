@@ -6,7 +6,7 @@ public class MagnetPickup : MonoBehaviour
     public float duration = 7f;
 
     [Header("Pool binding")]
-    public GameObject prefabKey; // שייכי באינספקטור לאיזה פריפאב שייך הפאווראפ הזה
+    public GameObject prefabKey; 
 
     void Reset()
     {

@@ -55,14 +55,7 @@ public class PlayerCollider : MonoBehaviour
             }
         }
     }
-
-    /*private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Player")) return;
-
-        if (gameManager.CanMove)
-            playerCollision.OnCharacterCollision(collision.collider);
-    }*/
+    
     private void OnCollisionEnter(Collision collision)
     {
         if ((obstacleLayer.value & (1 << collision.gameObject.layer)) == 0)

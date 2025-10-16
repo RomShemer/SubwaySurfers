@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5978280509992855727}
   m_Layer: 3
   m_Name: train_standard
-  m_TagString: Untagged
+  m_TagString: Train
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -108,8 +108,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.8, y: 2.46, z: 6}
-  m_Center: {x: 0.0000005364418, y: 1.26, z: -0.00000035762787}
+  m_Size: {x: 1.8, y: 2.72, z: 6}
+  m_Center: {x: 0.0000005364418, y: 1.36, z: -0.00000035762787}
 --- !u!1001 &7524189370464472999
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -118,9 +118,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5978280509992855726}
     m_Modifications:
+    - target: {fileID: 3100527109006307811, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_Size.y
+      value: 0.18
+      objectReference: {fileID: 0}
+    - target: {fileID: 3100527109006307811, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_Center.y
+      value: 2.95
+      objectReference: {fileID: 0}
     - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_Name
       value: top
+      objectReference: {fileID: 0}
+    - target: {fileID: 7621404518027872632, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
+      propertyPath: m_TagString
+      value: Train
       objectReference: {fileID: 0}
     - target: {fileID: 9134095732436436230, guid: cc6347206ecd44aa3a7b8b86e7ba55dc, type: 3}
       propertyPath: m_LocalPosition.x

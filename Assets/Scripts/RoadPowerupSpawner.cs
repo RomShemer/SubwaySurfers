@@ -10,8 +10,8 @@ public class RoadPowerupSpawner : MonoBehaviour
     {
         public string id = "magnet";
         public GameObject prefab;
-        [Range(0f, 1f)] public float weight = 1f; // משקל יחסי בהגרלה
-        public float clearRadius = 0.6f;          // רדיוס בדיקת-חפיפה עבור הסוג הזה
+        [Range(0f, 1f)] public float weight = 1f; 
+        public float clearRadius = 0.6f;          
     }
 
     [Header("What to spawn (weighted)")]
@@ -24,22 +24,22 @@ public class RoadPowerupSpawner : MonoBehaviour
     [Range(0,3)] public int maxPerTile = 1;
 
     [Header("Lanes / sockets")]
-    public string socketsRootName = "Sockets";     // אם יש סוקטים
-    public float[] lanesLocalX = new float[] { -1.2f, 0f, 1.2f }; // fallback אם אין
+    public string socketsRootName = "Sockets";     
+    public float[] lanesLocalX = new float[] { -1.2f, 0f, 1.2f };
     public float yLocalOffset = 0.5f;
 
     [Header("Z placement on tile (LOCAL)")]
     public float edgePaddingZ = 1.0f;
-    public float slotStepZ = 2.8f;                 // גריד נוח לבדיקת זמינות
+    public float slotStepZ = 2.8f;            
 
     [Header("Avoid overlap with existing stuff")]
-    public LayerMask blockMask;                    // שכבות של רכבות/מכשולים/מטבעות
-    public float extraClearRadius = 0.1f;          // שוליים קטנים מעבר ל-clearRadius הספציפי
+    public LayerMask blockMask;                   
+    public float extraClearRadius = 0.1f;        
 
     [Header("Gating / Start")]
-    public int skipTilesFromStart = 4;             // לא להניח באריחים הראשונים
+    public int skipTilesFromStart = 4;            
     public Transform player;
-    public float minAheadDistance = 18f;           // אל תניחו אריח אם תחילת האריח קרובה מדי לשחקן
+    public float minAheadDistance = 18f;          
 
     private BoxCollider _col;
     void Awake()
@@ -52,25 +52,21 @@ public class RoadPowerupSpawner : MonoBehaviour
         }
     }
 
-    // קוראים לזה מתוך InfiniteRoad כשמפעילים אריח, עם אינדקס האריח הכולל
     public void SpawnOnThisTile(int spawnedTileIndex)
     {
         if (spawnedTileIndex <= skipTilesFromStart) return;
         if (powerups.Count == 0 || PowerupPool.I == null) return;
         if (Random.value > chanceThisTile) return;
 
-        // בדיקת מרחק מינימלי מהשחקן: נוודא שתחילת האריח רחוקה מספיק
         if (!TryGetTileZRangeWorld(out float zMinW, out float zMaxW)) return;
         if (player && (zMinW - player.position.z) < minAheadDistance) return;
 
-        // בונים רשימת "סלוטים" אפשריים (ליין × Z), נערבב ונבחר עד maxPerTile
         var candidates = BuildCandidatesLocal();
         Shuffle(candidates);
 
         int placed = 0;
         foreach (var c in candidates)
         {
-            // בוחרים סוג פאווראפ בהגרלה משוקללת
             var def = PickPowerupWeighted();
             if (def == null || !def.prefab) continue;
 
@@ -79,12 +75,10 @@ public class RoadPowerupSpawner : MonoBehaviour
 
             float radius = Mathf.Max(0.05f, def.clearRadius + extraClearRadius);
             if (Physics.CheckSphere(world, radius, blockMask, QueryTriggerInteraction.Collide))
-                continue; // עמוס/מתנגש → נוותר וננסה סלוט אחר
+                continue;
 
-            // ספאון מהפול
             var inst = PowerupPool.I.Spawn(def.prefab, transform, world, transform.rotation);
 
-            // אופציונלי: "יישור" לאוריינטציית הליין (אם יש "Sockets")
             if (TryGetLaneRot(c.laneIndex, out var laneRot)) inst.transform.rotation = laneRot;
 
             placed++;
@@ -92,7 +86,7 @@ public class RoadPowerupSpawner : MonoBehaviour
         }
     }
 
-    // ---------- עזרים ----------
+    // ---------- helpers ----------
 
     private struct Slot { public int laneIndex; public float xLocal, zLocal; public Slot(int li,float xl,float zl){ laneIndex=li; xLocal=xl; zLocal=zl; } }
 
@@ -100,7 +94,6 @@ public class RoadPowerupSpawner : MonoBehaviour
     {
         var list = new List<Slot>();
 
-        // X של הליינים: מסוקטים אם יש, אחרת מערך fallback
         var xs = GetLaneLocalXs(out int laneCount);
 
         float lenZ = _col.size.z;
