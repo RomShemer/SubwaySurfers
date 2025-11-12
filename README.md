@@ -41,3 +41,13 @@ The player runs through an infinite subway world, dodging trains, jumping over r
 2. Load the scene: SubwaySurfers.unity
 3.	Press Play to start the game
 
+## 🎥 Demo Video
+
+<p align="center">
+  <a href="https://youtu.be/XuASD3zPyus" target="_blank">
+    <img src="https://img.youtube.com/vi/XuASD3zPyus/maxresdefault.jpg" 
+         alt="Subway Surfers Clone Demo" width="75%" style="border-radius:10px;">
+  </a>
+  <br>
+  <i>Click the image to watch the gameplay demo</i>
+</p>
